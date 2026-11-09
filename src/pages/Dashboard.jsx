@@ -2,6 +2,7 @@ import React from 'react';
 import SessionCard from '../components/SessionCard.jsx';
 import BoardPreview from '../components/BoardPreview.jsx';
 import StudyTab from '../components/StudyTab.jsx';
+import StatusMessage from '../components/StatusMessage.jsx';
 
 export default function Dashboard({ sessions, session, cards, operation, onSelect, onOpen }) {
   return (
@@ -16,7 +17,10 @@ export default function Dashboard({ sessions, session, cards, operation, onSelec
           <button className="btn btn-primary" disabled>＋ New study session</button>
         </div>
         <p className="workspace-demo-notice">Synthetic sample data only. Each session has its own cards; thumbnails use the same bundled stand-in. Changes are not saved.</p>
-        {operation.status === 'processing' && <p role="status">Sample build is processing. This fixture does not run a real build.</p>}
+        <StatusMessage
+          status={operation.status === 'processing' ? 'loading' : 'idle'}
+          message="Sample build is processing. This fixture does not run a real build."
+        />
         <div className="row g-4">
           <div className="col-lg-4">
             <section className="sessions-column" aria-label="Sample sessions">
@@ -29,7 +33,7 @@ export default function Dashboard({ sessions, session, cards, operation, onSelec
                   onSelect={() => onSelect(item.id)}
                 />
               ))}
-              {sessions.length === 0 && <p>No sample sessions yet.</p>}
+              <StatusMessage status={sessions.length === 0 ? 'empty' : 'idle'} message="No sample sessions yet." />
               <button className="btn btn-primary" onClick={onOpen} disabled={!session}>Open selected session →</button>
               <button className="text-button d-block" disabled>View all sessions →</button>
             </section>
