@@ -24,8 +24,8 @@ src/
     SessionDialog.jsx            Local New/Rename/Delete dialogs (#6)
     StatusMessage.jsx            Shared accessible feedback (#5)
     BoardPreview.jsx             Labelled Project 1 sample image
-    FlashcardDeck.jsx            Existing sample flip/Previous/Next behavior
-    TutorPanel.jsx               Typed-question demo acknowledgement
+    FlashcardDeck.jsx            Flip/navigation, local review/filter/delete (#9)
+    TutorPanel.jsx               Typed fixture replies and async preview states (#9)
     MaterialTab.jsx              One-photo/audio states and mock rebuild (#7)
     PhotoImportPanel.jsx         Controlled photo preview and import callbacks (#7)
     RecordingPlaceholder.jsx     Explicit synthetic recording-result slot (#7)
@@ -46,6 +46,7 @@ src/
     workspaces.js                Synthetic scenarios added under issue #3
     materialPreview.js           Independent sample material replacements (#7)
     notesPreview.js              Aligned/unmatched/conflict snapshots (#8)
+    tutorPreview.js              Exact sample response/source lookup (#9)
 ```
 
 `app/index.html` still loads `src/app/main.jsx`; `login/index.html` still loads
@@ -81,8 +82,8 @@ integration owners, not additional assignees for issue #2.
 | `src/components/PhotoImportPanel.jsx` | Huda | Initial photo shell under #7; real Photos integration under #42, Disha. |
 | `src/components/RecordingPlaceholder.jsx`, `src/fixtures/materialPreview.js` | Huda | Initial sample slot under #7; Venkatesh's actual recorder remains separate under #43. |
 | `src/components/NotesTab.jsx`, `AlignedNotesPanel.jsx`, `src/fixtures/notesPreview.js` | Huda | Read-only notes shell/fixtures under #8; real saved-note integration under #55, Venkatesh. |
-| `src/components/StudyTab.jsx`, `FlashcardDeck.jsx` | Huda | Detailed study behavior under #9, Huda; generated-card integration under #56, Venkatesh. |
-| `src/components/TutorPanel.jsx` | Huda | Detailed study shell under #9 and real tutor under #57, Huda. |
+| `src/components/StudyTab.jsx`, `FlashcardDeck.jsx` | Huda | Local review/filter/delete under #9; generated-card integration under #56, Venkatesh. |
+| `src/components/TutorPanel.jsx`, `src/fixtures/tutorPreview.js` | Huda | Typed fixture responses under #9; real tutor under #57, Huda. |
 | `src/services/README.md`, `src/models/README.md` | Huda | API client under #4 and contracts/fixtures under #3, Huda. |
 | `css/site.css` workspace additions | Huda | Coordinate future shared-style edits with feature owners. |
 | `src/SiteNav.jsx`, `src/login/main.jsx` (unchanged) | Huda | Authentication/navigation integration under #26–28, Huda. |
@@ -97,6 +98,9 @@ evidence](dashboard.md) for issue #6's local session operations.
 
 See [Material preview](material-tab.md) and [Notes view](notes-tab.md) for the
 current sample workflow, source/correction rules, focus callbacks, and evidence.
+
+See [Study behavior](study-tab.md) for local review state, card counts/deletion,
+typed tutor fixtures, and the later integration boundary.
 
 ## Verification checklist
 

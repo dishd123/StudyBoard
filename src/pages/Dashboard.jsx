@@ -6,7 +6,7 @@ import StudyTab from '../components/StudyTab.jsx';
 import StatusMessage from '../components/StatusMessage.jsx';
 
 export default function Dashboard({
-  sessions, allSessions, session, cards, operation, processingSessionId,
+  sessions, allSessions, session, cards, questions, onMarkKnown, onDeleteCard, operation, processingSessionId,
   courseFilter, onFilterChange, onCreate, onRename, onDelete, onSelect, onOpen
 }) {
   const filterId = useId();
@@ -79,7 +79,7 @@ export default function Dashboard({
           {session && <div className="col-lg-8">
             <div className="row g-4">
               <div className="col-12 dashboard-preview"><BoardPreview session={session} /></div>
-              <div className="col-12"><StudyTab key={session.id} cards={cards} /></div>
+              <div className="col-12"><StudyTab key={session.id} session={session} cards={cards} questions={questions} onMarkKnown={onMarkKnown} onDeleteCard={onDeleteCard} /></div>
             </div>
           </div>}
         </div>

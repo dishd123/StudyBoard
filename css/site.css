@@ -268,3 +268,22 @@
 .notes-unreadable h3 { font-size: 1.1rem; }
 .notes-unreadable ul { margin-bottom: 0; }
 .notes-table-scroll:focus-visible, .notes-tab button:focus-visible, .material-build:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+/* Local Study preview: review progress, safe deletion, and typed fixture replies. */
+.deck-summary, .study-preview-hint { color: var(--muted); font-size: .85rem; }
+.deck-filter { display: flex; align-items: start; gap: .6rem; margin: 1rem 0; }
+.deck-filter input { flex: none; margin-top: .3rem; }
+.deck-filter label { font-size: .9rem; }
+.card-review-controls { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+.card-review-controls button { border-radius: 999px; }
+.card-review-controls button[aria-pressed=true] { color: white; background: var(--teal); border-color: var(--teal); }
+.card-delete-confirmation { padding: 1rem; margin-top: 1rem; border: 1px solid #c88680; border-radius: 12px; background: #fff0ee; overflow-wrap: anywhere; }
+.card-delete-confirmation h3 { font-size: 1.1rem; }
+.review-deck .flashcard strong, .tutor-feedback { overflow-wrap: anywhere; }
+.review-deck .deck-controls { flex-wrap: wrap; gap: .75rem; }
+.tutor-examples { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
+.tutor-examples button { padding: .5rem .75rem; color: #e5f6ed; background: #385350; border: 1px solid #8dbda7; border-radius: 12px; font-size: .85rem; }
+.tutor-panel button:disabled, .tutor-form input:disabled { opacity: .65; cursor: not-allowed; }
+.tutor-sources { margin-top: .75rem; color: #dceae4; font-size: .85rem; }
+.tutor-sources p { margin-bottom: .35rem; }
+.review-deck :is(button, input):focus-visible, .tutor-panel :is(button, input):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
