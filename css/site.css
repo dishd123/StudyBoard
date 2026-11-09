@@ -153,3 +153,75 @@
   .status-message { align-items: stretch; flex-direction: column; }
   .status-message__retry { align-self: flex-start; }
 }
+
+/* Local dashboard controls; persistence is connected in the later API issue. */
+.dashboard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.course-filter { flex: 1 1 220px; min-width: 0; max-width: 360px; }
+.course-filter label, .session-dialog label {
+  display: block;
+  margin-bottom: .4rem;
+  font-weight: 700;
+}
+.session-actions, .session-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.session-actions .btn-outline-danger { border-radius: 999px; }
+.session-list { padding: 0; margin: 0; list-style: none; }
+.session-card-content { min-width: 0; overflow-wrap: anywhere; }
+.session-card time { display: block; color: var(--muted); font-size: .75rem; }
+.session-thumbnail {
+  flex: none;
+  width: 52px;
+  height: 60px;
+  border-radius: 9px;
+  object-fit: cover;
+}
+.session-thumbnail--empty {
+  display: grid;
+  place-items: center;
+  background: var(--mint);
+  text-align: center;
+}
+.session-card-details { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .35rem; }
+.session-card .session-status { padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+.session-card .session-status--draft { color: #42504b; background: #e8ece9; }
+.session-card .session-status--ready { color: #155a43; background: var(--mint); }
+.session-card .session-status--failed { color: #7e211c; background: #fff0ee; }
+.session-card .session-status--processing { color: #654408; background: #fff1cc; }
+.session-open-action { margin-top: 1rem; }
+.panel-heading > div { min-width: 0; }
+.panel-heading h2 { overflow-wrap: anywhere; }
+.panel-heading .icon-button { flex: none; }
+.dashboard-preview .workspace-board-image { height: 320px; object-fit: contain; }
+.session-dialog {
+  width: min(540px, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.75rem;
+  overflow-y: auto;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px #18252b33;
+}
+.session-dialog::backdrop { background: #18252b88; }
+.session-dialog h2 { font-size: 1.8rem; overflow-wrap: anywhere; }
+.session-dialog p { overflow-wrap: anywhere; }
+.session-dialog input { margin-bottom: 1rem; }
+.session-dialog-actions { justify-content: flex-end; margin-top: 1.5rem; }
+.session-dialog-actions .btn { border-radius: 999px; }
+.session-form-hint { color: var(--muted); font-size: .85rem; }
+.session-dialog :is(input, button):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+@media (max-width: 575px) {
+  .course-filter { max-width: none; }
+  .session-dialog { padding: 1.25rem; }
+}

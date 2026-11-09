@@ -20,6 +20,9 @@ src/
     SessionWorkspace.jsx         Back action and Material/Notes/Study navigation
   components/
     SessionCard.jsx              Select a sample session
+    SessionList.jsx              Filtered session list and empty state (#6)
+    SessionDialog.jsx            Local New/Rename/Delete dialogs (#6)
+    StatusMessage.jsx            Shared accessible feedback (#5)
     BoardPreview.jsx             Labelled Project 1 sample image
     FlashcardDeck.jsx            Existing sample flip/Previous/Next behavior
     TutorPanel.jsx               Typed-question demo acknowledgement
@@ -27,7 +30,8 @@ src/
     NotesTab.jsx                 Placeholder for the aligned-notes view
     StudyTab.jsx                 Flashcards and tutor side by side
   services/
-    README.md                    Reserved API/integration boundary
+    README.md                    API/integration ownership boundary
+    apiClient.js                 Shared protected request helper (#4)
   models/
     README.md                    Model ownership and contract documentation
     session.js                   Session and temporary operation shapes
@@ -45,8 +49,9 @@ the existing shared `SiteNav.jsx` are unchanged. No client router is added.
 Dashboard and session navigation use local React state at `/app/`; refresh
 returns to the dashboard and clears demo interactions.
 
-`App` owns the selected sample session and whether its workspace is open.
-`Dashboard` receives selection/open callbacks. `SessionWorkspace` owns the active
+`App` owns local workspace data, course filter, selected sample session, and
+whether its workspace is open. `Dashboard` receives selection, mutation, and
+filter callbacks. `SessionWorkspace` owns the active
 section. Components receive data through props, and no component calls a backend.
 Issue #3 replaces the transitional `demoData.js` with independent synthetic
 workspace fixtures. Each ready session has its own deck, while the bundled
@@ -64,7 +69,7 @@ integration owners, not additional assignees for issue #2.
 | --- | --- | --- |
 | `src/app/main.jsx`, `App.jsx` | Huda | Keep root composition separate from feature logic; fixtures are selected under #3. |
 | `src/models/*.js`, `src/fixtures/workspaces.js` | Huda | Revised contracts and synthetic fixtures under #3; backend validation and API connection are later work. |
-| `src/pages/Dashboard.jsx`, `src/components/SessionCard.jsx` | Huda | Detailed dashboard under #6 and API connection under #36, Huda. |
+| `src/pages/Dashboard.jsx`, `src/components/SessionCard.jsx`, `SessionList.jsx`, `SessionDialog.jsx` | Huda | Local dashboard actions under #6 and API connection under #36, Huda. |
 | `src/pages/SessionWorkspace.jsx` | Huda | Preserve the three-section composition as feature implementations arrive. |
 | `src/components/BoardPreview.jsx` | Huda | Real selected-photo preview with Photos integration, Disha; coordinate edits through its own issue. |
 | `src/components/MaterialTab.jsx` | Huda | Detailed shell under #7, Huda; recording/build integration under #54, Venkatesh. |
@@ -77,10 +82,11 @@ integration owners, not additional assignees for issue #2.
 
 `NotesTab` is the current shell name; issues referring to NotesPanel should extend
 or compose this component rather than create competing views. Services contains
-a README boundary; models now contains issue #3's contracts. See
+#4's request helper; models contains issue #3's contracts. See
 [frontend data contracts](frontend-data-contracts.md) for the current shapes and
 fixture URLs. No API client, Firestore schema, agent, recorder, or photo importer
-is implemented by the workspace-structure issue.
+is implemented by the workspace-structure issue. See [dashboard behavior and
+evidence](dashboard.md) for issue #6's local session operations.
 
 ## Verification checklist
 
