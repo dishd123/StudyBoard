@@ -1,4 +1,5 @@
 import React from 'react';
+import StatusMessage from './StatusMessage.jsx';
 
 export default function BoardPreview({ session }) {
   return (
@@ -16,12 +17,12 @@ export default function BoardPreview({ session }) {
           src={session.photo.thumbnail}
           alt={`Sample board thumbnail for ${session.title}`}
         />
-      </div> : <p className="workspace-placeholder">No photo has been added to this sample session.</p>}
+      </div> : <StatusMessage status="empty" message="No photo has been added to this sample session." />}
       <div className="board-meta">
         <span>{session.photo ? 'Fixture content is synthetic; the thumbnail is a bundled stand-in.' : 'Import will be connected later.'}</span>
         <span className="tag">{session.status}</span>
       </div>
-      {session.errorMessage && <p role="alert">{session.errorMessage}</p>}
+      <StatusMessage status={session.errorMessage ? 'service-error' : 'idle'} message={session.errorMessage ?? ''} />
     </section>
   );
 }

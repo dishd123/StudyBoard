@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import StatusMessage from './StatusMessage.jsx';
 
 export default function FlashcardDeck({ cards }) {
   const [flipped, setFlipped] = useState(false);
@@ -36,7 +37,7 @@ export default function FlashcardDeck({ cards }) {
             <button className="btn btn-sm btn-primary" onClick={() => moveCard(1)}>Next card →</button>
           </div>
         </>
-      ) : <p>No sample cards to display.</p>}
+      ) : <StatusMessage status="empty" message="No sample cards to display." />}
     </section>
   );
 }
