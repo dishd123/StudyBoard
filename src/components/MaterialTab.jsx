@@ -4,7 +4,8 @@ import RecordingPlaceholder from './RecordingPlaceholder.jsx';
 import StatusMessage from './StatusMessage.jsx';
 import { createSamplePhoto, createSampleAudio } from '../fixtures/materialPreview.js';
 
-export default function MaterialTab({ session, onPhotoChange, onAudioChange, onMockRebuild }) {
+export default function MaterialTab({ session, focusTarget, onPhotoChange, onAudioChange, onMockRebuild }) {
+  const materialRef = useRef(null);
   const [photoState, setPhotoState] = useState(session.photo ? 'ready' : 'empty');
   const [selection, setSelection] = useState(null);
   const [photoError, setPhotoError] = useState('');
@@ -19,6 +20,12 @@ export default function MaterialTab({ session, onPhotoChange, onAudioChange, onM
   const canBuild = photoState === 'ready' && Boolean(session.photo && session.audio);
 
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    if (!['photo', 'recording', 'build'].includes(focusTarget)) return;
+    const target = materialRef.current?.querySelector(`[data-material-target="${focusTarget}"]`);
+    target?.focus();
+    target?.scrollIntoView({ block: 'center' });
+  }, [focusTarget]);
 
   function resetBuildFeedback() {
     setBuildFeedback({ status: 'idle', message: '' });
@@ -90,7 +97,7 @@ export default function MaterialTab({ session, onPhotoChange, onAudioChange, onM
       : 'Add a recording result before building.';
 
   return (
-    <div className="material-tab">
+    <div ref={materialRef} className="material-tab">
       <p className="workspace-demo-notice">Sample material preview. No Google account or microphone access is requested.</p>
       <div className="row g-4">
         <div className="col-lg-7">
@@ -109,7 +116,7 @@ export default function MaterialTab({ session, onPhotoChange, onAudioChange, onM
           <RecordingPlaceholder audio={session.audio} disabled={busy} onUseSample={() => changeAudio(createSampleAudio(session))} onClear={() => changeAudio(null)} />
         </div>
       </div>
-      <section className="workspace-panel material-build" aria-label="Build study material">
+      <section className="workspace-panel material-build" aria-label="Build study material" data-material-target="build" tabIndex={-1}>
         <h2>Make notes and flashcards</h2>
         <p>Preview the build action after one photo result and one recording result are ready.</p>
         <StatusMessage status={!canBuild && !busy ? 'empty' : 'idle'} message={missingMessage} />

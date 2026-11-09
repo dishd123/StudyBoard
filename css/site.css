@@ -245,3 +245,26 @@
 .material-build { height: auto; margin-top: 1.5rem; }
 .material-build h2 { font-size: 1.6rem; }
 .material-tab :is(button, summary):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+/* Read-only board/explanation alignment; correction text accompanies shading. */
+.notes-overview, .notes-panel { height: auto; margin-bottom: 1.5rem; }
+.notes-tab h2 { font-size: 1.6rem; }
+.notes-summary, .notes-action-hint, .notes-unreadable { overflow-wrap: anywhere; }
+.notes-action-hint, .notes-counts { color: var(--muted); font-size: .85rem; }
+.notes-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.notes-table { width: 100%; min-width: 640px; table-layout: fixed; border-collapse: collapse; font-size: .9rem; }
+.notes-table caption { padding: .85rem; color: var(--muted); caption-side: top; text-align: left; }
+.notes-table th, .notes-table td { padding: .9rem; vertical-align: top; overflow-wrap: anywhere; border-bottom: 1px solid var(--line); }
+.notes-table thead { background: var(--cream); }
+.notes-table th:first-child { width: 5rem; }
+.notes-table tbody tr:last-child > * { border-bottom: 0; }
+.notes-table p { margin: .5rem 0 0; }
+.notes-row--corrected { background: #fff1cc; }
+.notes-flag { display: inline-block; padding: .15rem .45rem; margin-top: .5rem; border-radius: 8px; color: #7e211c; background: #fff0ee; font-size: .78rem; font-weight: 700; }
+.notes-flag--correction { margin-top: 0; color: #654408; background: #ffe4a3; }
+.notes-unmatched { color: #7e211c; }
+.notes-no-correction { color: var(--muted); }
+.notes-unreadable { padding: 1.25rem; border: 1px solid #cfad5d; border-radius: 12px; color: #654408; background: #fff7df; }
+.notes-unreadable h3 { font-size: 1.1rem; }
+.notes-unreadable ul { margin-bottom: 0; }
+.notes-table-scroll:focus-visible, .notes-tab button:focus-visible, .material-build:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
