@@ -6,21 +6,22 @@ export default function BoardPreview({ session }) {
       <div className="panel-heading">
         <div>
           <p className="eyebrow">SAMPLE BOARD</p>
-          <h2>{session.title.split(' · ')[1] || session.title}</h2>
+          <h2>{session.photo?.title ?? session.title}</h2>
         </div>
         <button className="icon-button" aria-label="More board options" disabled>•••</button>
       </div>
-      <div className="board-preview">
+      {session.photo ? <div className="board-preview">
         <img
           className="workspace-board-image"
-          src="/images/app-board.jpg"
-          alt="Project 1 sample photo of handwritten study material"
+          src={session.photo.thumbnail}
+          alt={`Sample board thumbnail for ${session.title}`}
         />
-      </div>
+      </div> : <p className="workspace-placeholder">No photo has been added to this sample session.</p>}
       <div className="board-meta">
-        <span>The same Project 1 sample image is used for every demo session.</span>
-        <span className="tag">Demo image</span>
+        <span>{session.photo ? 'Fixture content is synthetic; the thumbnail is a bundled stand-in.' : 'Import will be connected later.'}</span>
+        <span className="tag">{session.status}</span>
       </div>
+      {session.errorMessage && <p role="alert">{session.errorMessage}</p>}
     </section>
   );
 }

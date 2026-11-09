@@ -13,7 +13,6 @@ src/
   app/
     main.jsx                     CSS import and React root mounting
     App.jsx                      Selected session and dashboard/workspace state
-    demoData.js                  Transitional Project 1 sample sessions/cards
   login/
     main.jsx                     Existing mock Sign In/Create Account entry point
   pages/
@@ -30,7 +29,14 @@ src/
   services/
     README.md                    Reserved API/integration boundary
   models/
-    README.md                    Reserved data-contract boundary
+    README.md                    Model ownership and contract documentation
+    session.js                   Session and temporary operation shapes
+    material.js                  Processed photo/audio shapes
+    note.js                      Aligned step/explanation/correction
+    card.js                      Card with source step and known state
+    question.js                  Typed tutor history record
+  fixtures/
+    workspaces.js                Synthetic scenarios added under issue #3
 ```
 
 `app/index.html` still loads `src/app/main.jsx`; `login/index.html` still loads
@@ -42,7 +48,9 @@ returns to the dashboard and clears demo interactions.
 `App` owns the selected sample session and whether its workspace is open.
 `Dashboard` receives selection/open callbacks. `SessionWorkspace` owns the active
 section. Components receive data through props, and no component calls a backend.
-The shared image/deck are explicitly labelled as samples for every demo session.
+Issue #3 replaces the transitional `demoData.js` with independent synthetic
+workspace fixtures. Each ready session has its own deck, while the bundled
+thumbnail remains a labelled visual stand-in.
 The old multiple-board counts, capture/region claims, named-user greeting, and
 voice-question control are removed from the preview to match the revised scope.
 The actual Firebase sign-in replacement remains issue #27.
@@ -54,7 +62,8 @@ integration owners, not additional assignees for issue #2.
 
 | File or boundary | Initial owner | Later work and owner |
 | --- | --- | --- |
-| `src/app/main.jsx`, `App.jsx`, `demoData.js` | Huda | Keep root composition separate from feature logic; final models/fixtures under #3, Huda. |
+| `src/app/main.jsx`, `App.jsx` | Huda | Keep root composition separate from feature logic; fixtures are selected under #3. |
+| `src/models/*.js`, `src/fixtures/workspaces.js` | Huda | Revised contracts and synthetic fixtures under #3; backend validation and API connection are later work. |
 | `src/pages/Dashboard.jsx`, `src/components/SessionCard.jsx` | Huda | Detailed dashboard under #6 and API connection under #36, Huda. |
 | `src/pages/SessionWorkspace.jsx` | Huda | Preserve the three-section composition as feature implementations arrive. |
 | `src/components/BoardPreview.jsx` | Huda | Real selected-photo preview with Photos integration, Disha; coordinate edits through its own issue. |
@@ -67,10 +76,11 @@ integration owners, not additional assignees for issue #2.
 | `src/SiteNav.jsx`, `src/login/main.jsx` (unchanged) | Huda | Authentication/navigation integration under #26–28, Huda. |
 
 `NotesTab` is the current shell name; issues referring to NotesPanel should extend
-or compose this component rather than create competing views. Services/models
-contain README boundaries so Git records the directories without empty code
-stubs. No API client, Firestore schema, agent, recorder, or photo importer is
-implemented by this issue.
+or compose this component rather than create competing views. Services contains
+a README boundary; models now contains issue #3's contracts. See
+[frontend data contracts](frontend-data-contracts.md) for the current shapes and
+fixture URLs. No API client, Firestore schema, agent, recorder, or photo importer
+is implemented by the workspace-structure issue.
 
 ## Verification checklist
 
@@ -91,7 +101,7 @@ Run `npm run build` from the repository root, then `npm run dev` for manual chec
 | Refresh `/app/` | Returns to the dashboard; no persistence is implied. |
 | Narrow viewport and keyboard | Sections wrap; buttons remain reachable and focus is visible. |
 
-## Verification results
+## Verification results — issue #2 baseline
 
 Codex ran the following checks on November 8, 2026, using Linux Node
 `v22.23.2` for the build and headless Chrome through Playwright for browser

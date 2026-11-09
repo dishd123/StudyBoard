@@ -27,7 +27,8 @@ export default function FlashcardDeck({ cards }) {
             onClick={() => setFlipped((value) => !value)}
           >
             <span className="card-label">{flipped ? 'ANSWER' : 'QUESTION'}</span>
-            <strong>{flipped ? card.a : card.q}</strong>
+            <strong>{flipped ? card.answer : card.question}</strong>
+            <span>Source: step {card.step}</span>
             <small>Click to flip</small>
           </button>
           <div className="deck-controls">
