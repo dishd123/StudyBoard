@@ -30,6 +30,31 @@ export default function App() {
   const visibleSessions = sessions.filter((item) => !courseFilter || item.course === courseFilter);
   const session = visibleSessions.find((item) => item.id === selectedSessionId) ?? visibleSessions[0] ?? null;
   const cards = workspace.cardsBySession[session?.id] ?? [];
+  const questions = workspace.questionsBySession[session?.id] ?? [];
+
+  function markCardKnown(id, cardId, known) {
+    setWorkspace((current) => {
+      const existing = current.cardsBySession[id];
+      if (typeof known !== 'boolean' || !existing?.some((card) => card.id === cardId)) return current;
+      return {
+        ...current,
+        cardsBySession: { ...current.cardsBySession, [id]: existing.map((card) => card.id === cardId ? { ...card, known } : card) }
+      };
+    });
+  }
+
+  function deleteCard(id, cardId) {
+    setWorkspace((current) => {
+      const existing = current.cardsBySession[id];
+      if (!existing?.some((card) => card.id === cardId)) return current;
+      const remaining = existing.filter((card) => card.id !== cardId);
+      return {
+        ...current,
+        sessions: current.sessions.map((item) => item.id === id ? { ...item, cardCount: remaining.length, updatedAt: new Date().toISOString() } : item),
+        cardsBySession: { ...current.cardsBySession, [id]: remaining }
+      };
+    });
+  }
 
   function changeCourseFilter(course) {
     setCourseFilter(course);
@@ -103,6 +128,9 @@ export default function App() {
           key={session.id}
           session={session}
           cards={cards}
+          questions={questions}
+          onMarkKnown={(cardId, known) => markCardKnown(session.id, cardId, known)}
+          onDeleteCard={(cardId) => deleteCard(session.id, cardId)}
           operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
           onPhotoChange={(photo) => updateMaterial(session.id, 'photo', photo)}
           onAudioChange={(audio) => updateMaterial(session.id, 'audio', audio)}
@@ -115,6 +143,9 @@ export default function App() {
           allSessions={sessions}
           session={session}
           cards={cards}
+          questions={questions}
+          onMarkKnown={(cardId, known) => markCardKnown(session.id, cardId, known)}
+          onDeleteCard={(cardId) => deleteCard(session.id, cardId)}
           operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
           processingSessionId={workspace.operation.status === 'processing' ? processingSessionId : null}
           courseFilter={courseFilter}

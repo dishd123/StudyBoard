@@ -9,7 +9,7 @@ const sections = [
   { id: 'study', label: 'Study' }
 ];
 
-export default function SessionWorkspace({ session, cards, operation, onBack, onPhotoChange, onAudioChange, onMockRebuild }) {
+export default function SessionWorkspace({ session, cards, questions, onMarkKnown, onDeleteCard, operation, onBack, onPhotoChange, onAudioChange, onMockRebuild }) {
   const [activeSection, setActiveSection] = useState('material');
   const [materialFocus, setMaterialFocus] = useState(null);
 
@@ -44,7 +44,7 @@ export default function SessionWorkspace({ session, cards, operation, onBack, on
         <section id="session-content" aria-labelledby={`section-${activeSection}`}>
           {activeSection === 'material' && <MaterialTab session={session} focusTarget={materialFocus} onPhotoChange={onPhotoChange} onAudioChange={onAudioChange} onMockRebuild={onMockRebuild} />}
           {activeSection === 'notes' && <NotesTab session={session} operation={operation} onEditMaterial={editMaterial} />}
-          {activeSection === 'study' && <StudyTab cards={cards} />}
+          {activeSection === 'study' && <StudyTab session={session} cards={cards} questions={questions} onMarkKnown={onMarkKnown} onDeleteCard={onDeleteCard} />}
         </section>
       </div>
     </main>
