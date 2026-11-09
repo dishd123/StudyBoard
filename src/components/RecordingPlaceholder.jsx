@@ -15,7 +15,7 @@ export default function RecordingPlaceholder({ audio, disabled, onUseSample, onC
         message={audio ? `Sample recording result available (${audio.length} seconds).` : 'No recording result yet. Use a sample result to preview the next step.'}
       />
       <div className="material-actions">
-        <button type="button" className="btn btn-outline-dark" onClick={onUseSample} disabled={disabled}>{audio ? 'Replace sample recording result' : 'Use sample recording result'}</button>
+        <button type="button" className="btn btn-outline-dark" data-material-target="recording" onClick={onUseSample} disabled={disabled}>{audio ? 'Replace sample recording result' : 'Use sample recording result'}</button>
         {audio && <button type="button" className="btn btn-outline-dark" onClick={onClear} disabled={disabled}>Clear sample recording result</button>}
       </div>
       {audio && (

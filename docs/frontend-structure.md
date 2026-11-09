@@ -29,7 +29,8 @@ src/
     MaterialTab.jsx              One-photo/audio states and mock rebuild (#7)
     PhotoImportPanel.jsx         Controlled photo preview and import callbacks (#7)
     RecordingPlaceholder.jsx     Explicit synthetic recording-result slot (#7)
-    NotesTab.jsx                 Placeholder for the aligned-notes view
+    NotesTab.jsx                 Saved summary, notes feedback, Material actions (#8)
+    AlignedNotesPanel.jsx         Step/explanation/correction table (#8)
     StudyTab.jsx                 Flashcards and tutor side by side
   services/
     README.md                    API/integration ownership boundary
@@ -44,6 +45,7 @@ src/
   fixtures/
     workspaces.js                Synthetic scenarios added under issue #3
     materialPreview.js           Independent sample material replacements (#7)
+    notesPreview.js              Aligned/unmatched/conflict snapshots (#8)
 ```
 
 `app/index.html` still loads `src/app/main.jsx`; `login/index.html` still loads
@@ -78,7 +80,7 @@ integration owners, not additional assignees for issue #2.
 | `src/components/MaterialTab.jsx` | Huda | Detailed shell under #7, Huda; recording/build integration under #54, Venkatesh. |
 | `src/components/PhotoImportPanel.jsx` | Huda | Initial photo shell under #7; real Photos integration under #42, Disha. |
 | `src/components/RecordingPlaceholder.jsx`, `src/fixtures/materialPreview.js` | Huda | Initial sample slot under #7; Venkatesh's actual recorder remains separate under #43. |
-| `src/components/NotesTab.jsx` | Huda | Detailed notes shell under #8, Huda; saved-note integration under #55, Venkatesh. |
+| `src/components/NotesTab.jsx`, `AlignedNotesPanel.jsx`, `src/fixtures/notesPreview.js` | Huda | Read-only notes shell/fixtures under #8; real saved-note integration under #55, Venkatesh. |
 | `src/components/StudyTab.jsx`, `FlashcardDeck.jsx` | Huda | Detailed study behavior under #9, Huda; generated-card integration under #56, Venkatesh. |
 | `src/components/TutorPanel.jsx` | Huda | Detailed study shell under #9 and real tutor under #57, Huda. |
 | `src/services/README.md`, `src/models/README.md` | Huda | API client under #4 and contracts/fixtures under #3, Huda. |
@@ -92,6 +94,9 @@ or compose this component rather than create competing views. Services contains
 fixture URLs. No API client, Firestore schema, agent, recorder, or photo importer
 is implemented by the workspace-structure issue. See [dashboard behavior and
 evidence](dashboard.md) for issue #6's local session operations.
+
+See [Material preview](material-tab.md) and [Notes view](notes-tab.md) for the
+current sample workflow, source/correction rules, focus callbacks, and evidence.
 
 ## Verification checklist
 

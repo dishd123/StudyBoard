@@ -41,7 +41,7 @@ export default function PhotoImportPanel({
         isRetrying={processing && hasError}
       />
       <div className="material-actions">
-        {!selection && <button type="button" className="btn btn-outline-dark" onClick={onSelect} disabled={disabled}>{photo ? 'Replace photo' : 'Select sample photo'}</button>}
+        {!selection && <button type="button" className="btn btn-outline-dark" data-material-target="photo" onClick={onSelect} disabled={disabled}>{photo ? 'Replace photo' : 'Select sample photo'}</button>}
         {status === 'selected' && <button type="button" className="btn btn-primary" onClick={onImport} disabled={disabled}>Use sample photo</button>}
         {selection && <button type="button" className="btn btn-outline-dark" onClick={onCancel}>{processing ? 'Cancel import' : 'Cancel selection'}</button>}
       </div>

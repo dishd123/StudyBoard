@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard.jsx';
 import SessionWorkspace from '../pages/SessionWorkspace.jsx';
 import { createWorkspaceFixture, fixtureNames } from '../fixtures/workspaces.js';
 import { createSession } from '../models/session.js';
+import { createNotesPreview } from '../fixtures/notesPreview.js';
 
 // Development-only scenario URLs exercise fixtures without adding product controls.
 const requestedFixture = import.meta.env.DEV
@@ -13,7 +14,12 @@ const fixtureName = fixtureNames.includes(requestedFixture) ? requestedFixture :
 const idleOperation = { status: 'idle', name: null };
 
 export default function App() {
-  const [workspace, setWorkspace] = useState(() => createWorkspaceFixture(fixtureName));
+  const [workspace, setWorkspace] = useState(() => {
+    const initial = createWorkspaceFixture(fixtureName);
+    return import.meta.env.DEV
+      ? createNotesPreview(initial, new URLSearchParams(window.location.search).get('notesPreview'))
+      : initial;
+  });
   const [selectedSessionId, setSelectedSessionId] = useState(workspace.sessions[0]?.id ?? null);
   const [sessionOpen, setSessionOpen] = useState(false);
   const [courseFilter, setCourseFilter] = useState('');
@@ -97,6 +103,7 @@ export default function App() {
           key={session.id}
           session={session}
           cards={cards}
+          operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
           onPhotoChange={(photo) => updateMaterial(session.id, 'photo', photo)}
           onAudioChange={(audio) => updateMaterial(session.id, 'audio', audio)}
           onMockRebuild={() => rebuildPreview(session.id)}
