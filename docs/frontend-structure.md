@@ -26,7 +26,9 @@ src/
     BoardPreview.jsx             Labelled Project 1 sample image
     FlashcardDeck.jsx            Existing sample flip/Previous/Next behavior
     TutorPanel.jsx               Typed-question demo acknowledgement
-    MaterialTab.jsx              Sample board and disabled integration placeholders
+    MaterialTab.jsx              One-photo/audio states and mock rebuild (#7)
+    PhotoImportPanel.jsx         Controlled photo preview and import callbacks (#7)
+    RecordingPlaceholder.jsx     Explicit synthetic recording-result slot (#7)
     NotesTab.jsx                 Placeholder for the aligned-notes view
     StudyTab.jsx                 Flashcards and tutor side by side
   services/
@@ -41,6 +43,7 @@ src/
     question.js                  Typed tutor history record
   fixtures/
     workspaces.js                Synthetic scenarios added under issue #3
+    materialPreview.js           Independent sample material replacements (#7)
 ```
 
 `app/index.html` still loads `src/app/main.jsx`; `login/index.html` still loads
@@ -73,6 +76,8 @@ integration owners, not additional assignees for issue #2.
 | `src/pages/SessionWorkspace.jsx` | Huda | Preserve the three-section composition as feature implementations arrive. |
 | `src/components/BoardPreview.jsx` | Huda | Real selected-photo preview with Photos integration, Disha; coordinate edits through its own issue. |
 | `src/components/MaterialTab.jsx` | Huda | Detailed shell under #7, Huda; recording/build integration under #54, Venkatesh. |
+| `src/components/PhotoImportPanel.jsx` | Huda | Initial photo shell under #7; real Photos integration under #42, Disha. |
+| `src/components/RecordingPlaceholder.jsx`, `src/fixtures/materialPreview.js` | Huda | Initial sample slot under #7; Venkatesh's actual recorder remains separate under #43. |
 | `src/components/NotesTab.jsx` | Huda | Detailed notes shell under #8, Huda; saved-note integration under #55, Venkatesh. |
 | `src/components/StudyTab.jsx`, `FlashcardDeck.jsx` | Huda | Detailed study behavior under #9, Huda; generated-card integration under #56, Venkatesh. |
 | `src/components/TutorPanel.jsx` | Huda | Detailed study shell under #9 and real tutor under #57, Huda. |

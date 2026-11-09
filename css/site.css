@@ -225,3 +225,23 @@
   .course-filter { max-width: none; }
   .session-dialog { padding: 1.25rem; }
 }
+
+/* One-photo/one-recording Material preview shell. */
+.material-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
+.material-actions .btn { white-space: normal; }
+.photo-import-panel .panel-heading { flex-wrap: wrap; }
+.material-photo-preview { margin: 1rem 0; }
+.material-photo-preview img { display: block; width: 100%; height: 300px; object-fit: contain; border-radius: 12px; background: var(--cream); }
+.material-photo-preview figcaption { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; margin-top: .5rem; }
+.material-subheading { margin-top: 1.5rem; }
+.material-steps { padding-left: 1.5rem; }
+.material-steps li, .material-transcript li { margin-bottom: .65rem; overflow-wrap: anywhere; }
+.material-unreadable { padding: 1rem; background: #fff1cc; border-radius: 12px; }
+.material-unreadable h3 { font-size: 1rem; }
+.material-unreadable ul { margin-bottom: 0; }
+.material-transcript { margin-top: 1rem; overflow-wrap: anywhere; }
+.material-transcript summary { font-weight: 700; cursor: pointer; }
+.material-transcript p { margin-top: 1rem; }
+.material-build { height: auto; margin-top: 1.5rem; }
+.material-build h2 { font-size: 1.6rem; }
+.material-tab :is(button, summary):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }

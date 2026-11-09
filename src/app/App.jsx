@@ -66,6 +66,29 @@ export default function App() {
     setSessionOpen(false);
   }
 
+  function updateMaterial(id, field, value) {
+    // Only committed input changes invalidate derived output; cancelled selection does not.
+    setWorkspace((current) => {
+      if (!current.sessions.some((item) => item.id === id)) return current;
+      return {
+        ...current,
+        operation: id === processingSessionId ? idleOperation : current.operation,
+        sessions: current.sessions.map((item) => item.id === id ? {
+          ...item, [field]: value, status: 'draft', errorMessage: null,
+          summary: '', notes: [], cardCount: 0, updatedAt: new Date().toISOString()
+        } : item),
+        cardsBySession: { ...current.cardsBySession, [id]: [] }
+      };
+    });
+  }
+
+  function rebuildPreview(id) {
+    const target = workspace.sessions.find((item) => item.id === id);
+    if (!target?.photo || !target.audio) throw new Error('Missing preview material');
+    // No notes/cards are generated and no stored processing status is changed.
+    return { sessionId: id, preview: true };
+  }
+
   return (
     <>
       <SiteNav active="/app/" />
@@ -74,6 +97,9 @@ export default function App() {
           key={session.id}
           session={session}
           cards={cards}
+          onPhotoChange={(photo) => updateMaterial(session.id, 'photo', photo)}
+          onAudioChange={(audio) => updateMaterial(session.id, 'audio', audio)}
+          onMockRebuild={() => rebuildPreview(session.id)}
           onBack={() => setSessionOpen(false)}
         />
       ) : (
@@ -83,7 +109,7 @@ export default function App() {
           session={session}
           cards={cards}
           operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
-          processingSessionId={processingSessionId}
+          processingSessionId={workspace.operation.status === 'processing' ? processingSessionId : null}
           courseFilter={courseFilter}
           onFilterChange={changeCourseFilter}
           onCreate={addSession}
