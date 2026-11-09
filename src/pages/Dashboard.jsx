@@ -3,7 +3,7 @@ import SessionCard from '../components/SessionCard.jsx';
 import BoardPreview from '../components/BoardPreview.jsx';
 import StudyTab from '../components/StudyTab.jsx';
 
-export default function Dashboard({ sessions, session, cards, onSelect, onOpen }) {
+export default function Dashboard({ sessions, session, cards, operation, onSelect, onOpen }) {
   return (
     <main className="app-shell">
       <div className="container">
@@ -15,7 +15,8 @@ export default function Dashboard({ sessions, session, cards, onSelect, onOpen }
           </div>
           <button className="btn btn-primary" disabled>＋ New study session</button>
         </div>
-        <p className="workspace-demo-notice">Demo data only. Changes are not saved, and the sample image and review deck are shared across sessions.</p>
+        <p className="workspace-demo-notice">Synthetic sample data only. Each session has its own cards; thumbnails use the same bundled stand-in. Changes are not saved.</p>
+        {operation.status === 'processing' && <p role="status">Sample build is processing. This fixture does not run a real build.</p>}
         <div className="row g-4">
           <div className="col-lg-4">
             <section className="sessions-column" aria-label="Sample sessions">
@@ -24,20 +25,21 @@ export default function Dashboard({ sessions, session, cards, onSelect, onOpen }
                 <SessionCard
                   key={item.id}
                   session={item}
-                  selected={item.id === session.id}
+                  selected={item.id === session?.id}
                   onSelect={() => onSelect(item.id)}
                 />
               ))}
-              <button className="btn btn-primary" onClick={onOpen}>Open selected session →</button>
+              {sessions.length === 0 && <p>No sample sessions yet.</p>}
+              <button className="btn btn-primary" onClick={onOpen} disabled={!session}>Open selected session →</button>
               <button className="text-button d-block" disabled>View all sessions →</button>
             </section>
           </div>
-          <div className="col-lg-8">
+          {session && <div className="col-lg-8">
             <div className="row g-4">
               <div className="col-12"><BoardPreview session={session} /></div>
               <div className="col-12"><StudyTab key={session.id} cards={cards} /></div>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     </main>
