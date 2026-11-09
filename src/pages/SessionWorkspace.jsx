@@ -9,7 +9,7 @@ const sections = [
   { id: 'study', label: 'Study' }
 ];
 
-export default function SessionWorkspace({ session, cards, onBack }) {
+export default function SessionWorkspace({ session, cards, onBack, onPhotoChange, onAudioChange, onMockRebuild }) {
   const [activeSection, setActiveSection] = useState('material');
 
   return (
@@ -36,7 +36,7 @@ export default function SessionWorkspace({ session, cards, onBack }) {
           ))}
         </nav>
         <section id="session-content" aria-labelledby={`section-${activeSection}`}>
-          {activeSection === 'material' && <MaterialTab session={session} />}
+          {activeSection === 'material' && <MaterialTab session={session} onPhotoChange={onPhotoChange} onAudioChange={onAudioChange} onMockRebuild={onMockRebuild} />}
           {activeSection === 'notes' && <NotesTab />}
           {activeSection === 'study' && <StudyTab cards={cards} />}
         </section>

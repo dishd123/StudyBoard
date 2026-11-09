@@ -1,28 +1,126 @@
-import React from 'react';
-import BoardPreview from './BoardPreview.jsx';
+import React, { useEffect, useRef, useState } from 'react';
+import PhotoImportPanel from './PhotoImportPanel.jsx';
+import RecordingPlaceholder from './RecordingPlaceholder.jsx';
+import StatusMessage from './StatusMessage.jsx';
+import { createSamplePhoto, createSampleAudio } from '../fixtures/materialPreview.js';
 
-export default function MaterialTab({ session }) {
+export default function MaterialTab({ session, onPhotoChange, onAudioChange, onMockRebuild }) {
+  const [photoState, setPhotoState] = useState(session.photo ? 'ready' : 'empty');
+  const [selection, setSelection] = useState(null);
+  const [photoError, setPhotoError] = useState('');
+  const [building, setBuilding] = useState(false);
+  const [buildFeedback, setBuildFeedback] = useState({
+    status: session.errorMessage ? 'error' : 'idle', message: session.errorMessage ?? ''
+  });
+  const timer = useRef(null);
+  const photoFailOnce = useRef(import.meta.env.DEV && new URLSearchParams(window.location.search).get('photoFailOnce') === '1');
+  const buildFailOnce = useRef(import.meta.env.DEV && new URLSearchParams(window.location.search).get('buildFailOnce') === '1');
+  const busy = photoState === 'processing' || building;
+  const canBuild = photoState === 'ready' && Boolean(session.photo && session.audio);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  function resetBuildFeedback() {
+    setBuildFeedback({ status: 'idle', message: '' });
+  }
+
+  function selectPhoto() {
+    if (busy) return;
+    setSelection(createSamplePhoto(session));
+    setPhotoState('selected');
+    setPhotoError('');
+    resetBuildFeedback();
+  }
+
+  function cancelPhoto() {
+    clearTimeout(timer.current);
+    setSelection(null);
+    setPhotoState(session.photo ? 'ready' : 'empty');
+    setPhotoError('');
+  }
+
+  function importPhoto() {
+    if (!selection || busy) return;
+    setPhotoState('processing');
+    timer.current = setTimeout(() => {
+      try {
+        if (photoFailOnce.current) {
+          photoFailOnce.current = false;
+          throw new Error('Preview failure');
+        }
+        onPhotoChange(selection);
+        setSelection(null);
+        setPhotoState('ready');
+        setPhotoError('');
+      } catch {
+        setPhotoState('failed');
+        setPhotoError('The sample photo import failed. Try again or cancel the selection.');
+      }
+    }, 800);
+  }
+
+  function changeAudio(audio) {
+    if (busy) return;
+    onAudioChange(audio);
+    resetBuildFeedback();
+  }
+
+  function rebuild() {
+    if (!canBuild || busy) return;
+    setBuilding(true);
+    timer.current = setTimeout(() => {
+      try {
+        if (buildFailOnce.current) {
+          buildFailOnce.current = false;
+          throw new Error('Preview failure');
+        }
+        onMockRebuild();
+        setBuildFeedback({ status: 'success', message: 'Preview rebuild completed. This preview did not generate or save notes and flashcards.' });
+      } catch {
+        setBuildFeedback({ status: 'error', message: 'The preview rebuild failed. Try again.' });
+      } finally {
+        setBuilding(false);
+      }
+    }, 800);
+  }
+
+  const missingMessage = !session.photo && !session.audio
+    ? 'Add one photo and one recording result before building.'
+    : photoState !== 'ready' ? 'Finish selecting and importing a photo before building.'
+      : 'Add a recording result before building.';
+
   return (
-    <div className="row g-4">
-      <div className="col-lg-7"><BoardPreview session={session} /></div>
-      <div className="col-lg-5">
-        <section className="workspace-panel">
-          <p className="eyebrow">SESSION MATERIAL</p>
-          <h2>One photo, one explanation.</h2>
-          <p>Import a board photo and record its explanation. These actions are unavailable in this preview.</p>
-          <div className="workspace-placeholder">
-            <h3>Photo import</h3>
-            <p>Choose a board photo through Google Photos.</p>
-            <button className="btn btn-outline-dark" disabled>Import from Google Photos</button>
-          </div>
-          <div className="workspace-placeholder">
-            <h3>Spoken explanation</h3>
-            <p>Record an explanation in the browser.</p>
-            <button className="btn btn-outline-dark" disabled>Record explanation</button>
-          </div>
-          <button className="btn btn-primary" disabled>Make notes and flashcards</button>
-        </section>
+    <div className="material-tab">
+      <p className="workspace-demo-notice">Sample material preview. No Google account or microphone access is requested.</p>
+      <div className="row g-4">
+        <div className="col-lg-7">
+          <PhotoImportPanel
+            photo={session.photo}
+            selection={selection}
+            status={photoState}
+            error={photoError}
+            disabled={busy}
+            onSelect={selectPhoto}
+            onImport={importPhoto}
+            onCancel={cancelPhoto}
+          />
+        </div>
+        <div className="col-lg-5">
+          <RecordingPlaceholder audio={session.audio} disabled={busy} onUseSample={() => changeAudio(createSampleAudio(session))} onClear={() => changeAudio(null)} />
+        </div>
       </div>
+      <section className="workspace-panel material-build" aria-label="Build study material">
+        <h2>Make notes and flashcards</h2>
+        <p>Preview the build action after one photo result and one recording result are ready.</p>
+        <StatusMessage status={!canBuild && !busy ? 'empty' : 'idle'} message={missingMessage} />
+        <StatusMessage
+          status={building && buildFeedback.status !== 'error' ? 'loading' : buildFeedback.status}
+          message={building ? 'Running the preview rebuild…' : buildFeedback.message}
+          onRetry={buildFeedback.status === 'error' && canBuild ? rebuild : undefined}
+          isRetrying={building && buildFeedback.status === 'error'}
+        />
+        <button type="button" className="btn btn-primary" disabled={!canBuild || busy} onClick={rebuild}>Make notes and flashcards (preview)</button>
+      </section>
     </div>
   );
 }
