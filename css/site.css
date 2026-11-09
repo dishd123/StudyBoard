@@ -8,3 +8,63 @@
 .auth-visual { min-height: 680px; }
 .auth-caption { position: absolute; right: 1.25rem; bottom: 1rem; margin: 0; padding: .35rem .65rem; background: rgba(248,246,240,.82); border-radius: 999px; color: var(--ink); font-size: .7rem; letter-spacing: .02em; }
 @media (max-width: 767px) { .auth-visual { min-height: 280px; } }
+
+/* Project 2 workspace shell; detailed feature states are added in later issues. */
+.session-card .session-card-title {
+  display: block;
+  margin: .2rem 0;
+  color: var(--ink);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .95rem;
+  font-weight: 600;
+}
+.workspace-board-image {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+}
+.workspace-demo-notice {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--teal);
+  background: var(--mint);
+}
+.workspace-heading {
+  margin: 1rem 0 1.5rem;
+}
+.workspace-heading h1 {
+  overflow-wrap: anywhere;
+}
+.workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.workspace-tabs button {
+  padding: .75rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: white;
+  font-weight: 700;
+}
+.workspace-tabs button.is-active {
+  color: white;
+  background: var(--teal);
+  border-color: var(--teal);
+}
+.workspace-tabs button:focus-visible,
+.session-card:focus-visible,
+.flashcard:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
+}
+.workspace-placeholder {
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
