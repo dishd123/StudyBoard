@@ -6,8 +6,8 @@ from the preceding [notesAgent](notes-agent.md) output. It performs no database
 operations, raw-media processing, HTTP handling, or frontend updates.
 
 This implements [Issue #47](https://github.com/dishd123/StudyBoard/issues/47).
-The future `studySetPipeline` will run notesAgent followed by cardsAgent, but
-Issue #48's pipeline is not implemented here.
+[studySetPipeline](study-set-pipeline.md) runs notesAgent followed by cardsAgent
+with a fresh in-memory session. Build persistence and retry remain in Issue #49.
 
 ## Existing notes input and ADK state
 

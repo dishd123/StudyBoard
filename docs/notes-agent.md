@@ -32,9 +32,9 @@ This module establishes exported constants for the later pipeline:
 | `notesInputKey` | `notesInput` | Validated structured input object. |
 | `notesOutputKey` | `notesResult` | Validated structured notes object, not a JSON string. Null until successful generation. |
 
-The future pipeline must place the current build's input under `notesInput`.
-[cardsAgent](cards-agent.md) reads `notesResult`; the sequential pipeline remains
-separate work in Issue #48. Use a fresh ADK session for each build.
+[studySetPipeline](study-set-pipeline.md) places the current build's input under
+`notesInput`, then runs notesAgent followed by [cardsAgent](cards-agent.md).
+Its execution wrapper uses a fresh ADK session for each build.
 The factory creates a separate agent instance
 when a pipeline needs its own parent relationship.
 

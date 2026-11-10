@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "check": "node --check services/geminiAudioService.js && node --check routes/audio.js && node --check scripts/testGeminiAudio.js && node --check agents/notesContract.js && node --check agents/notesAgent.js && node --check agents/cardsContract.js && node --check agents/cardsAgent.js"
+    "check": "node --check services/geminiAudioService.js && node --check routes/audio.js && node --check scripts/testGeminiAudio.js && node --check agents/notesContract.js && node --check agents/notesAgent.js && node --check agents/cardsContract.js && node --check agents/cardsAgent.js && node --check agents/studySetPipeline.js"
   },
   "dependencies": {
     "@google/adk": "2.4.0",
