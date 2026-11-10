@@ -135,6 +135,23 @@ StatusMessage is issue #5. Firebase wiring is #25–30; real API usage starts wi
 the later backend integrations. The fixture UI stays local for now, so there is
 no new visual feature or live network call to verify in `/app/` for this issue.
 
+## Optional diagnostics — issue #62
+
+`createApiClient` accepts `diagnostics: createClientLogger()`. When supplied,
+each failed request reports one fixed operation label, the normalized error
+metadata, and elapsed time. The original error is rethrown unchanged. Successful
+requests do not emit failure records, and omitting diagnostics preserves the
+original silent behavior. No failure automatically retries.
+
+The logger accepts only UUID v4 request IDs for console correlation. Existing
+API error normalization still preserves the server's request ID; nonconforming
+IDs are omitted from diagnostics rather than copied as arbitrary text. Backend
+logging must use the same UUID convention for actual cross-layer correlation.
+
+See [frontend diagnostics](frontend-diagnostics.md) for composition, record
+fields, a controlled browser check, and implementation evidence. This helper
+does not give browsers Cloud Logging access or collect GA4 events.
+
 ## Acceptance and verification
 
 | Issue #4 requirement | Implementation |
