@@ -98,16 +98,49 @@ function check(condition) {
   if (!condition) invalidOutput();
 }
 
-/** Enforce the schema and preservation rules before ADK can publish notesResult. */
-export function validateNotesResult(result, source) {
-  const input = prepareNotesInput(source);
+/** Check the existing notesResult shape without requiring its original media-analysis sources. */
+export function validateNotesStructure(result) {
   check(exactKeys(result, ['course', 'summary', 'notes', 'audioOnly', 'unresolved']));
-  check(result.course === input.course && isText(result.summary));
+  check(typeof result.course === 'string' && isText(result.summary));
   const sentences = [...new Intl.Segmenter('en', { granularity: 'sentence' }).segment(result.summary)]
     .filter(({ segment }) => segment.trim());
   check(sentences.length === 2);
-  check(Array.isArray(result.notes) && result.notes.length === input.photo.steps.length);
+  check(Array.isArray(result.notes));
   check(Array.isArray(result.audioOnly) && Array.isArray(result.unresolved) && result.unresolved.every(isText));
+
+  const steps = new Set();
+  const matchedIndexes = new Set();
+  for (const note of result.notes) {
+    check(exactKeys(note, ['step', 'boardText', 'explanation', 'correction', 'emphasis', 'sourcePointIndexes']));
+    check(Number.isSafeInteger(note.step) && note.step > 0 && !steps.has(note.step) && isText(note.boardText));
+    steps.add(note.step);
+    check((note.explanation === null || isText(note.explanation)) && (note.correction === null || isText(note.correction)));
+    check(Array.isArray(note.emphasis) && note.emphasis.every(isText) && Array.isArray(note.sourcePointIndexes));
+    let previous = -1;
+    for (const index of note.sourcePointIndexes) {
+      check(Number.isSafeInteger(index) && index > previous);
+      matchedIndexes.add(index);
+      previous = index;
+    }
+    if (!note.sourcePointIndexes.length) {
+      check(note.explanation === null && note.correction === null && note.emphasis.length === 0);
+    }
+  }
+  let previousAudioOnly = -1;
+  for (const point of result.audioOnly) {
+    check(exactKeys(point, ['pointIndex', 'text', 'kind']));
+    check(Number.isSafeInteger(point.pointIndex) && point.pointIndex > previousAudioOnly && !matchedIndexes.has(point.pointIndex));
+    check(isText(point.text) && pointKindSchema.enum.includes(point.kind));
+    previousAudioOnly = point.pointIndex;
+  }
+  return result;
+}
+
+/** Enforce the schema and preservation rules before ADK can publish notesResult. */
+export function validateNotesResult(result, source) {
+  const input = prepareNotesInput(source);
+  validateNotesStructure(result);
+  check(result.course === input.course && result.notes.length === input.photo.steps.length);
 
   const points = input.audio.points;
   const used = new Set();

@@ -33,9 +33,9 @@ This module establishes exported constants for the later pipeline:
 | `notesOutputKey` | `notesResult` | Validated structured notes object, not a JSON string. Null until successful generation. |
 
 The future pipeline must place the current build's input under `notesInput`.
-cardsAgent can subsequently read `notesResult`; neither subsequent agent nor
-the sequential pipeline is implemented here. Use a fresh ADK session for each
-build, as required by Issue #48. The factory creates a separate agent instance
+[cardsAgent](cards-agent.md) reads `notesResult`; the sequential pipeline remains
+separate work in Issue #48. Use a fresh ADK session for each build.
+The factory creates a separate agent instance
 when a pipeline needs its own parent relationship.
 
 ## Input schema
@@ -158,7 +158,9 @@ still depend on the model; these are not provable from field types alone.
 
 `notesContract.js` exports both ADK schemas, state-key constants,
 `prepareNotesInput`, `validateNotesResult`, and `NotesAgentError` (re-exported by
-`notesAgent.js`). Safe error codes are `INVALID_NOTES_INPUT`,
+`notesAgent.js`). It also exports `validateNotesStructure` for downstream consumers
+such as cardsAgent, without requiring the original sources. Full source validation
+still runs in `validateNotesResult`. Safe error codes are `INVALID_NOTES_INPUT`,
 `INVALID_NOTES_OUTPUT`, `NOTES_MODEL_FAILED`, and `MISSING_API_KEY`.
 Validation errors expose fixed messages, not source text or provider payloads.
 
