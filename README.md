@@ -42,7 +42,7 @@ CS651 Web Systems, CSU East Bay, Fall 2026: Disha Deshmukh, Huda Joad, Venkatesh
 | `frontend/tests/` | Phase 0 and recorder tests; [test instructions](frontend/tests/README.md) |
 | `frontend/package.json`, `frontend/package-lock.json` | Frontend dependencies and commands; its Vite/Vitest configs live beside them |
 | `backend/` | Backend agents, services, routes, tests, and its separate package/lockfile |
-| Root `package.json` | Convenience commands that delegate to `frontend/`; deployment scripts are issue #13 |
+| Root `package.json` | Frontend command delegates plus issue #13's `gcp-build`, Express entry command, and Node 22 runtime selection |
 | `docs/Special-Issues.pdf` | The answers to Special Issues 1 and 2 |
 
 ## Run it locally
@@ -73,5 +73,60 @@ and `npm test --prefix backend`. It is not needed for the current frontend previ
 The retained static Apache/Docker workflow is documented separately in
 [DockerContainer/README.md](DockerContainer/README.md); it does not serve the
 Project 2 API.
+
+## Root build and runtime commands — issue #13
+
+Use Node 22.12 or newer within the Node 22 major version, matching the root
+`engines.node` setting `^22.12.0`. The root package has no application dependencies;
+the frontend and backend each keep their own package and lockfile.
+
+From the repository root:
+
+```bash
+npm run gcp-build
+```
+
+This installs the locked frontend dependencies (including build/test dev
+dependencies even with `NODE_ENV=production`), builds `frontend/dist/`, then
+installs the locked backend production dependencies. The command stops on a
+failed step. It installs packages and builds the frontend; it does not run
+Gemini, create cloud resources, or deploy a service. Root `npm run build` remains
+a quick frontend-only build using already installed dependencies.
+
+After Disha's server in issue #16 is available, the runtime entry command is:
+
+```bash
+PORT=8080 npm start
+```
+
+`npm start` invokes `node backend/server.js` from the repository root. The server
+must listen on the supplied `PORT` and serve `frontend/dist/` with `/api` from
+the same origin. It receives environment configuration from the caller; the
+start script does not embed secrets or use a development server.
+
+**Current dependency:** `backend/server.js` is not present at the issue #13
+baseline. The start command is configured for issue #16; real server startup,
+`/health`, static serving, and API behavior must be verified when that server
+lands. Running `npm start` before then reports a missing module. Issue #14
+remains the backend package owner's work; the root command directly invokes the
+agreed server file without depending on a backend start script.
+
+Google's [Node.js buildpack documentation](https://docs.cloud.google.com/docs/buildpacks/nodejs)
+describes the custom `gcp-build` hook, `engines.node`, and `scripts.start`.
+Deployment should use that build hook; an explicit `GOOGLE_NODE_RUN_SCRIPTS`
+override takes precedence and must not accidentally skip child-package
+installation. The source-based Cloud Run deployment remains its own issue.
+
+Issue #13 verification on November 9, 2026 (America/Los_Angeles), from baseline
+`e79e181`, with Node v22.23.2:
+
+| Check | Result |
+| --- | --- |
+| `NODE_ENV=production npm run gcp-build` | Passed: locked frontend install, `frontend/dist` build, backend production install. |
+| `npm run test:frontend` after that install | 107 tests passed. |
+| `npm test --prefix backend` | 319 tests passed with controlled local dependencies; no live model/database call. |
+| `npm run check --prefix backend` | Passed. |
+| Child package manifests/lockfiles | Unchanged; root retains no application dependencies. |
+| Live Express start, `/health`, static/API serving | Pending issue #16; server entry file absent at this baseline. |
 
 Historical Project 1 AI-use statement: Claude (Anthropic), ChatGPT (OpenAI) and GitHub Copilot helped plan the deployment steps, work through code and commands, check AWS prices and limits, and draft and edit the documentation. I, Disha Deshmukh, ran every command, made every console change and took every screenshot.
