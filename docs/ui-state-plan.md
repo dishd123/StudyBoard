@@ -58,7 +58,7 @@ to Firestore's `Session.status`.
 | Retrying | Photo/build/tutor failure previews expose Try again and pending feedback. | User explicitly retries after addressing the cause. Disable repeat submission until settled; do not silently replay mutations. |
 | Unauthorized / inaccessible | `apiClient` normalizes auth/permission errors, but screens are not wired to them. | Handle 401 with sign-in, 403 with access-denied guidance, and missing/inaccessible sessions with safe not-found guidance. Do not keep another user's session visible. |
 
-The saved contract is defined in [`src/models/session.js`](../src/models/session.js):
+The saved contract is defined in [`frontend/src/models/session.js`](../frontend/src/models/session.js):
 `draft | ready | failed`. The initial build operation is a separate
 `{ status: 'idle' | 'processing', name: null | 'build' }` object. Photo selection,
 microphone permission/capture, playback, pending requests, and retry flags are
