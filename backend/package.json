@@ -7,6 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "start": "node server.js",
     "test": "node --test tests/*.test.js",
     "check": "node --check services/geminiAudioService.js && node --check routes/audio.js && node --check scripts/testGeminiAudio.js && node --check agents/notesContract.js && node --check agents/notesAgent.js && node --check agents/cardsContract.js && node --check agents/cardsAgent.js && node --check agents/studySetPipeline.js && node --check services/buildService.js"
   },
@@ -14,6 +15,7 @@
     "@google/adk": "2.4.0",
     "@google/genai": "3.0.0",
     "express": "5.3.0",
+    "firebase-admin": "14.5.0",
     "multer": "2.5.0"
   }
 }
