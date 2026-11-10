@@ -23,6 +23,12 @@ serviceAccount*.json
 # Local recordings and runtime media
 recordings/
 uploads/
+# Temporary image/audio work stays local; public and documentation images remain trackable.
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
 *.webm
 *.mp4
 *.m4a
