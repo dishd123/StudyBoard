@@ -1,4 +1,60 @@
-.venv
+# Dependencies and generated output
 node_modules/
 dist/
+.vite/
+.cache/
+
+# Local environment and credentials; keep shareable templates
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.template
+!.env.*.template
+.aws/
+.secrets/
+credentials.json
+service-account*.json
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+
+# Local recordings and runtime media
+recordings/
+uploads/
+*.webm
+*.mp4
+*.m4a
+*.ogg
+*.oga
+*.wav
+*.mp3
+*.aac
+*.flac
+*.aif
+*.aiff
+
+# Logs and verification artifacts
+*.log
+npm-debug.log*
+coverage/
+.nyc_output/
+.playwright-cli/
+playwright-report/
+test-results/
+output/playwright/
+
+# Local Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+
+# Editor and operating-system files
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+Thumbs.db
+Desktop.ini
