@@ -7,7 +7,8 @@ operations, raw-media processing, HTTP handling, or frontend updates.
 
 This implements [Issue #47](https://github.com/dishd123/StudyBoard/issues/47).
 [studySetPipeline](study-set-pipeline.md) runs notesAgent followed by cardsAgent
-with a fresh in-memory session. Build persistence and retry remain in Issue #49.
+with a fresh in-memory session. The [build service](build-service.md) provides
+build persistence and retry for Issue #49.
 
 ## Existing notes input and ADK state
 
@@ -72,6 +73,10 @@ There must be 5–10 cards, inclusive, and no extra fields. The repository's agr
 [Card contract](frontend-data-contracts.md) names the source reference `step`,
 so the generated schema uses `step`, not a new `sourceStep` field. IDs and the
 persisted `known` review flag are outside this agent's generated output.
+
+For Issue #49, `cardsContract.js` also exports `validateBuildCardsResult`, sharing
+the same field/content/source checks with a 3–12 build-level tolerance. This
+does not change the agent's 5–10 prompt, schema, or `validateCardsResult` checks.
 
 Every step must occur in the supplied `notesResult.notes[].step` set. The check
 uses actual step IDs, not array positions or audio-point indexes, and permits
@@ -144,7 +149,7 @@ counts, and unsupported steps cannot become successful saved cardsResult.
 The module exports `cardsAgent`, `createCardsAgent`, `cardsOutputKey`,
 `cardsOutputSchema`, `prepareCardsInput`, `validateCardsResult`, and
 `CardsAgentError`. Callers should consume validated state rather than log raw
-framework/provider events. Retry and persistence belong to later build work.
+framework/provider events. The build service owns retry and persistence.
 
 ## Local verification
 

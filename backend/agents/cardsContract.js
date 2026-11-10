@@ -63,10 +63,10 @@ function redundantCards(left, right) {
   return shared / smaller >= 0.9;
 }
 
-export function validateCardsResult(result, notesResult) {
+function validateCardSet(result, notesResult, minCards, maxCards) {
   const input = prepareCardsInput(notesResult);
-  const invalid = () => { throw new CardsAgentError('INVALID_CARDS_OUTPUT', 'Generate 5–10 distinct flashcards with nonempty questions, answers, and valid note step references.'); };
-  if (!exactKeys(result, ['cards']) || !Array.isArray(result.cards) || result.cards.length < 5 || result.cards.length > 10) invalid();
+  const invalid = () => { throw new CardsAgentError('INVALID_CARDS_OUTPUT', `Generate ${minCards}–${maxCards} distinct flashcards with nonempty questions, answers, and valid note step references.`); };
+  if (!exactKeys(result, ['cards']) || !Array.isArray(result.cards) || result.cards.length < minCards || result.cards.length > maxCards) invalid();
   const steps = new Set(input.notes.map((note) => note.step));
   const seen = [];
   for (const card of result.cards) {
@@ -77,4 +77,12 @@ export function validateCardsResult(result, notesResult) {
     seen.push(normalized);
   }
   return result;
+}
+
+export function validateCardsResult(result, notesResult) {
+  return validateCardSet(result, notesResult, 5, 10);
+}
+
+export function validateBuildCardsResult(result, notesResult) {
+  return validateCardSet(result, notesResult, 3, 12);
 }
