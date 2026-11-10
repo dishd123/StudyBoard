@@ -50,8 +50,9 @@ src/
 ```
 
 `app/index.html` still loads `src/app/main.jsx`; `login/index.html` still loads
-`src/login/main.jsx`. Home, About, Contact, their `js/site.js` navigation, and
-the existing shared `SiteNav.jsx` are unchanged. No client router is added.
+`src/login/main.jsx`. Home, About, and Contact retain their entry points and
+content. Issue #10 adds current-page metadata to `js/site.js` and `SiteNav.jsx`
+and explicitly labels the login/account forms as previews. No client router is added.
 Dashboard and session navigation use local React state at `/app/`; refresh
 returns to the dashboard and clears demo interactions.
 
@@ -86,7 +87,7 @@ integration owners, not additional assignees for issue #2.
 | `src/components/TutorPanel.jsx`, `src/fixtures/tutorPreview.js` | Huda | Typed fixture responses under #9; real tutor under #57, Huda. |
 | `src/services/README.md`, `src/models/README.md` | Huda | API client under #4 and contracts/fixtures under #3, Huda. |
 | `css/site.css` workspace additions | Huda | Coordinate future shared-style edits with feature owners. |
-| `src/SiteNav.jsx`, `src/login/main.jsx` (unchanged) | Huda | Authentication/navigation integration under #26–28, Huda. |
+| `src/SiteNav.jsx`, `src/login/main.jsx` | Huda | Navigation/auth preview clarity under #10; real authentication integration under #26–28, Huda. |
 
 `NotesTab` is the current shell name; issues referring to NotesPanel should extend
 or compose this component rather than create competing views. Services contains
@@ -101,6 +102,10 @@ current sample workflow, source/correction rules, focus callbacks, and evidence.
 
 See [Study behavior](study-tab.md) for local review state, card counts/deletion,
 typed tutor fixtures, and the later integration boundary.
+
+See [navigation and authentication entry points](navigation-entry-points.md)
+for issue #10's page mapping, preview behavior, desktop/mobile evidence, and
+manual review checklist.
 
 ## Verification checklist
 
