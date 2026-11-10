@@ -25,7 +25,7 @@ export default function SessionWorkspace({ session, cards, questions, onMarkKnow
         <div className="app-welcome workspace-heading">
           <div><p className="eyebrow">SAMPLE SESSION</p><h1>{session.title}</h1></div>
         </div>
-        <p className="workspace-demo-notice">Frontend preview only. Photo import, recording, generated notes, and the real tutor are not connected.</p>
+        <p className="workspace-demo-notice">Frontend preview with local microphone recording. Photo import, audio processing, generated notes, and the real tutor are not connected.</p>
         <nav className="workspace-tabs" aria-label="Session sections">
           {sections.map((section) => (
             <button
