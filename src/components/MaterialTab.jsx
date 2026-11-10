@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PhotoImportPanel from './PhotoImportPanel.jsx';
-import RecordingPlaceholder from './RecordingPlaceholder.jsx';
+import AudioRecorder from './AudioRecorder.jsx';
 import StatusMessage from './StatusMessage.jsx';
-import { createSamplePhoto, createSampleAudio } from '../fixtures/materialPreview.js';
+import { createSamplePhoto } from '../fixtures/materialPreview.js';
 
 export default function MaterialTab({ session, focusTarget, onPhotoChange, onAudioChange, onMockRebuild }) {
   const materialRef = useRef(null);
@@ -72,6 +72,15 @@ export default function MaterialTab({ session, focusTarget, onPhotoChange, onAud
     resetBuildFeedback();
   }
 
+  function useRecording(_blob, { duration }) {
+    // Only a safe placeholder enters session state; the recorder owns raw audio.
+    changeAudio({
+      transcript: 'Recording captured locally. Audio processing will be available after backend integration.',
+      points: [],
+      length: duration
+    });
+  }
+
   function rebuild() {
     if (!canBuild || busy) return;
     setBuilding(true);
@@ -98,7 +107,7 @@ export default function MaterialTab({ session, focusTarget, onPhotoChange, onAud
 
   return (
     <div ref={materialRef} className="material-tab">
-      <p className="workspace-demo-notice">Sample material preview. No Google account or microphone access is requested.</p>
+      <p className="workspace-demo-notice">Photo import and study-material building use samples. Recording uses your microphone only when you click Record; audio processing is not connected.</p>
       <div className="row g-4">
         <div className="col-lg-7">
           <PhotoImportPanel
@@ -113,7 +122,20 @@ export default function MaterialTab({ session, focusTarget, onPhotoChange, onAud
           />
         </div>
         <div className="col-lg-5">
-          <RecordingPlaceholder audio={session.audio} disabled={busy} onUseSample={() => changeAudio(createSampleAudio(session))} onClear={() => changeAudio(null)} />
+          <AudioRecorder disabled={busy} onUseRecording={useRecording} />
+          {session.audio && (
+            <div className="mt-3">
+              <p>Accepted recording result: {Math.round(session.audio.length)} seconds. Playback is available only while this tab remains open.</p>
+              <details className="material-transcript">
+                <summary>Recording result (preview)</summary>
+                <p>{session.audio.transcript}</p>
+                <ul>
+                  {session.audio.points.map((point, index) => <li key={index}><strong>{point.kind}:</strong> {point.text}</li>)}
+                </ul>
+              </details>
+              <button type="button" className="btn btn-outline-dark mt-3" disabled={busy} onClick={() => changeAudio(null)}>Clear recording result</button>
+            </div>
+          )}
         </div>
       </div>
       <section className="workspace-panel material-build" aria-label="Build study material" data-material-target="build" tabIndex={-1}>

@@ -1,25 +1,27 @@
 # Material tab shell — issue #7
 
 Owner: Huda Joad. Related issue: [#7](https://github.com/dishd123/StudyBoard/issues/7).
-Scope: one photo and one recording result with explicit sample callbacks.
+Scope: one photo and one recording result. Photo import and builds remain samples;
+issue #43 replaces the recording placeholder with a local browser recorder.
 
 ## Files and ownership
 
 | File | Responsibility |
 | --- | --- |
-| `src/components/MaterialTab.jsx` | Photo selection/import states, sample recording callbacks, build prerequisites, mock loading/failure/retry/completion, and timer cleanup. |
+| `src/components/MaterialTab.jsx` | Photo selection/import states, local recording handoff, build prerequisites, mock loading/failure/retry/completion, and timer cleanup. |
 | `src/components/PhotoImportPanel.jsx` | Controlled one-photo preview, actions, recognized sample steps, unreadable flags, and StatusMessage feedback. |
-| `src/components/RecordingPlaceholder.jsx` | Labelled future recorder slot plus optional synthetic transcript/point results for preview. |
+| `src/components/AudioRecorder.jsx` | Runtime microphone capture, three-minute limit, playback, re-recording, Blob callback, and resource cleanup. |
+| `src/components/RecordingPlaceholder.jsx` | Original sample slot, retained unused. |
 | `src/fixtures/materialPreview.js` | Independent synthetic photo/audio results copied from the selected session or a ready fallback fixture. |
 | `src/pages/SessionWorkspace.jsx` | Passes material callbacks from App into the Material tab. |
 | `src/app/App.jsx` | Applies committed input changes to the correct local session and invalidates derived results. |
 | `css/site.css` | Responsive photo, action, transcript, flag, and build presentation. |
 
 All initial shell work belongs to Huda. Disha will connect the Photos OAuth,
-Picker, image processing, and real photo import. Venkatesh will add runtime
-recording/audio processing and the actual build pipeline. This issue calls none
-of those services and requests neither microphone permission nor Google access.
-No Firebase, raw media files, upload input, polling, or API dependency is added.
+Picker, image processing, and real photo import. Issue #43 adds runtime recording;
+audio processing and the actual build pipeline remain later work. Microphone
+permission is requested only after clicking Record or Re-record. No Google
+access, Firebase, upload input, polling, or API dependency is added.
 
 ## Photo states
 
@@ -38,13 +40,31 @@ There is no multi-photo list or archive. Pending and saved photo are distinct:
 selection/cancellation is local UI state, and only a successful acceptance
 replaces `session.photo`.
 
-## Recording placeholder
+## Runtime recording — issue #43
 
-The actual Record explanation button is disabled and labelled as a future
-three-minute browser recorder. Use sample recording result supplies synthetic
-processed text; it does not play, upload, or pretend to capture audio. Existing
-results display length, transcript, and points tagged explanation, correction,
-or emphasis. Replace/Clear sample result exercise the singular audio slot.
+`AudioRecorder` uses MediaRecorder and requests an audio-only stream on click.
+It checks supported WebM/Opus, WebM, MP4, and Ogg/Opus formats in that order,
+falling back to the browser default. Unsupported browsers and denied, missing,
+or unavailable microphones receive useful messages.
+
+The UI shows recording state and elapsed time. Stop ends capture manually;
+a separate timeout stops capture at 180 seconds. Playback uses one local Blob
+URL. Re-record discards that recording and requests a replacement. Use this
+recording calls `onUseRecording(blob, { mimeType, duration })`, with duration
+in seconds. No upload or processing request is made.
+
+MaterialTab puts only a duration, empty points, and the explicit message
+"Recording captured locally. Audio processing will be available after backend
+integration." into the existing session audio shape. This message is a
+placeholder, not a transcript. Existing sample results remain viewable and
+clearable; the build action remains an explicitly non-generating preview.
+
+Raw audio stays in component memory. Tracks and timers stop on completion,
+failure, or unmount; old playback URLs are revoked on replacement and unmount.
+Unmount also invalidates pending microphone requests and queued recorder events.
+A stream granted after leaving the tab is immediately stopped. Raw audio and
+playback are discarded when leaving Material; only the safe session placeholder
+survives navigation. Refresh discards all local preview edits.
 
 ## Parent callbacks and stale output
 
@@ -82,10 +102,12 @@ Start `npm run dev` and open `/app/?fixture=draft`. Open the session's Material
 tab, then:
 
 1. Verify the empty photo/recording feedback and disabled build action.
-2. Use a sample recording result; build must remain disabled without a photo.
+2. Record an explanation, stop, play it back, then click Use this recording;
+   build must remain disabled without a photo.
 3. Select a sample photo; cancel once, then select and use it.
 4. Observe processing followed by the one-photo result and recognized steps.
-5. Clear the recording; build must become unavailable again. Add it back.
+5. Clear the recording result; build must become unavailable again. Click Use
+   this recording to accept it again, or Re-record to capture a replacement.
 6. Run Make notes and flashcards (preview); observe loading and explicit mock
    completion. This does not populate the Notes or Study tab.
 7. Replace the photo; cancel to retain existing material or accept to invalidate
@@ -126,7 +148,7 @@ These screenshots show sample frontend states, not live integrations.
 | One photo | Singular saved field and at most one visible preview image. |
 | Missing-input checks | Missing photo or recording disables build and displays an explanatory message. |
 
-## Verification results
+## Historical issue #7 verification results
 
 Codex ran the following checks on November 9, 2026 with Linux Node `v22.23.2`
 and headless Chrome through Playwright. The temporary dev server used port
@@ -153,5 +175,28 @@ were needed.
 
 These were one-off implementation checks. Dedicated persisted frontend tests
 remain under issue #12; full browser/assistive-technology testing remains later
-QA work. Real Photos, runtime audio, Gemini, and ADK remain separate integration
-issues. Issue #7 is ready for review in its own PR with `Closes #7`.
+QA work. At the time of issue #7, real Photos, runtime audio, Gemini, and ADK
+remained separate integration issues. Issue #7 is ready for review in its own
+PR with `Closes #7`.
+
+## Issue #43 verification
+
+On November 9, 2026, `npm install`, `npm run check`, and `npm run build` passed
+on Windows with Node `v26.8.2`. No dependencies or lockfile changes were needed.
+One-off Playwright CLI checks used headless Chromium and a synthetic microphone
+against a temporary local Vite server. No real microphone audio was collected.
+
+The checks covered click-only permission requests, duplicate clicks, elapsed
+time, manual stop, a nonempty MediaRecorder Blob and working playback, local
+acceptance, clearing/reusing a recording, and re-recording. The 179/180-second
+boundary was simulated by advancing the measured clock and invoking the stop
+timeout; this was not a three-minute wall-clock recording.
+
+Injected denied/missing/busy microphone errors, unsupported MediaRecorder,
+browser-default MIME fallback, MIME-specific constructor failure, and recorder
+runtime failure all behaved as expected. Unmount during capture or a pending
+permission request released tracks and timers; late stream grants were stopped.
+Replacement/unmount revoked playback URLs. Final checks found no active tracks,
+recorder timers, playback URLs, browser runtime errors, or non-GET requests.
+The 390px viewport had no horizontal overflow. Physical microphones and other
+browser engines still need manual acceptance checks.
