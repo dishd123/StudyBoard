@@ -59,7 +59,7 @@ function hasExactKeys(value, keys) {
     && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
 }
 
-function validateResult(result) {
+export function validateAudioResult(result) {
   if (!hasExactKeys(result, ['transcript', 'points', 'length'])
       || typeof result.transcript !== 'string' || !Array.isArray(result.points) || !validDuration(result.length)
       || !result.points.every((point) => hasExactKeys(point, ['text', 'kind'])
@@ -132,7 +132,7 @@ export function createGeminiAudioService({ client } = {}) {
     } catch {
       throw new AudioProcessingError('MALFORMED_MODEL_JSON', 'Audio processing returned unreadable JSON. Please try again.');
     }
-    validateResult(result);
+    validateAudioResult(result);
     // Caller-provided duration is authoritative, but never rescues an invalid model result.
     return {
       transcript: result.transcript,

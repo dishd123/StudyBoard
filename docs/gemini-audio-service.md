@@ -3,7 +3,8 @@
 [Issue #44](https://github.com/dishd123/StudyBoard/issues/44) adds
 `backend/services/geminiAudioService.js`. It turns in-memory recorded audio into
 `{ transcript, points, length }` through a direct Gemini Developer API request.
-The audio route belongs to issue #45; nothing calls this service from the UI yet.
+The [audio route factory](audio-route.md) in issue #45 calls this service; nothing
+calls it from the UI yet. Its `validateAudioResult` export is reused by the route.
 
 The repository did not have a backend package. The minimal ESM package added here
 keeps server dependencies separate, as planned in
