@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import FlashcardDeck from '../../src/components/FlashcardDeck.jsx';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
+import FlashcardDeck from '../src/components/FlashcardDeck.jsx';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
 import { button, click, setupUi } from './helpers/ui.jsx';
 
 const ui = setupUi();

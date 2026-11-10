@@ -1,6 +1,18 @@
-# CS651 Project 1 Part 2: StudyBoard on AWS EC2 with Docker
+# StudyBoard — CS651 Project 2
 
-StudyBoard is the website of our group's startup idea: a computer vision and machine learning product that turns photos of class whiteboards and notes into readable notes, flashcards and a study tutor. This repository holds the full site source and deploys it on an Amazon EC2 server inside one Docker container with Apache httpd, using an image stored in Amazon ECR.
+StudyBoard extends the Project 1 site into a study workspace for one board photo
+and one runtime spoken explanation per session. The existing frontend is now in
+`frontend/`; the plain JavaScript backend modules are in `backend/`. The revised
+October 19 proposal targets one Express/Cloud Run service. Server integration
+and deployment are still separate issues; the current frontend uses fixtures
+with local microphone capture.
+
+See [frontend layout and migration checks](docs/frontend-layout.md) for issue #15.
+
+## Project 1 references
+
+The following links and deployment notes are retained from Project 1; they are
+not a claim that the Project 2 service is deployed.
 
 | Item | Value |
 | --- | --- |
@@ -22,22 +34,44 @@ CS651 Web Systems, CSU East Bay, Fall 2026: Disha Deshmukh, Huda Joad, Venkatesh
 | Path | What it holds |
 | --- | --- |
 | `DockerContainer/` | `Dockerfile`, `httpd.conf`, and the README with the build and deploy steps |
-| `index.html`, `about.html`, `contact.html` | The Home, About and Contact pages |
-| `app/`, `login/` | The App page and the Sign In page. Each HTML file is an empty shell that loads a React entry point from `src/` |
-| `src/` | The React source: the App page (`src/app/`), the Sign In page (`src/login/`) and the shared menu `SiteNav.jsx` |
-| `css/site.css`, `js/site.js` | The site's styles, and the shared menu, footer and contact form script for the plain HTML pages |
-| `public/images/` | The photos used on the pages |
+| `frontend/index.html`, `frontend/about.html`, `frontend/contact.html` | The Home, About and Contact pages |
+| `frontend/app/`, `frontend/login/` | Retained App and Sign In HTML entry points |
+| `frontend/src/` | Existing React app, components, fixtures, models, services, and login |
+| `frontend/css/site.css`, `frontend/js/site.js` | Shared styles and static-page menu/footer/contact script |
+| `frontend/public/images/` | The existing page and sample-board images |
+| `frontend/tests/` | Phase 0 and recorder tests; [test instructions](frontend/tests/README.md) |
+| `frontend/package.json`, `frontend/package-lock.json` | Frontend dependencies and commands; its Vite/Vitest configs live beside them |
+| `backend/` | Backend agents, services, routes, tests, and its separate package/lockfile |
+| Root `package.json` | Convenience commands that delegate to `frontend/`; deployment scripts are issue #13 |
 | `docs/Special-Issues.pdf` | The answers to Special Issues 1 and 2 |
 
 ## Run it locally
 
-With Docker Desktop, from the repository root:
+From the repository root, install the frontend package and start Vite:
 
+```bash
+npm ci --prefix frontend
+npm run dev
 ```
-docker build -f DockerContainer/Dockerfile -t project1-part2:local .
-docker run --rm -p 8080:80 project1-part2:local
+
+Use Vite's printed address (normally `http://localhost:5173`) and the existing
+`/`, `/about.html`, `/contact.html`, `/app/`, and `/login/` routes.
+
+```bash
+npm run test:frontend
+npm run build
+npm run preview
 ```
 
-Then open `http://localhost:8080`. Without Docker: `npm install`, then `npm run dev`.
+The build is written to `frontend/dist/`. Root commands delegate to the frontend
+package and forward arguments, such as `npm run dev -- --port 5174`. Running the
+same commands inside `frontend/` also works. Root `npm ci` alone does not install
+the child packages; use the explicit frontend installation command above.
 
-AI use: Claude (Anthropic), ChatGPT (OpenAI) and GitHub Copilot helped plan the deployment steps, work through code and commands, check AWS prices and limits, and draft and edit the documentation. I, Disha Deshmukh, ran every command, made every console change and took every screenshot.
+Backend development uses its own package, for example `npm ci --prefix backend`
+and `npm test --prefix backend`. It is not needed for the current frontend preview.
+The retained static Apache/Docker workflow is documented separately in
+[DockerContainer/README.md](DockerContainer/README.md); it does not serve the
+Project 2 API.
+
+Historical Project 1 AI-use statement: Claude (Anthropic), ChatGPT (OpenAI) and GitHub Copilot helped plan the deployment steps, work through code and commands, check AWS prices and limits, and draft and edit the documentation. I, Disha Deshmukh, ran every command, made every console change and took every screenshot.

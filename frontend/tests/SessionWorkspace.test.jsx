@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import SessionWorkspace from '../../src/pages/SessionWorkspace.jsx';
-import NotesTab from '../../src/components/NotesTab.jsx';
-import App from '../../src/app/App.jsx';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
-import { createNotesPreview } from '../../src/fixtures/notesPreview.js';
+import SessionWorkspace from '../src/pages/SessionWorkspace.jsx';
+import NotesTab from '../src/components/NotesTab.jsx';
+import App from '../src/app/App.jsx';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
+import { createNotesPreview } from '../src/fixtures/notesPreview.js';
 import { button, click, fakeRequests, finishRequests, setupUi } from './helpers/ui.jsx';
 
 const ui = setupUi();

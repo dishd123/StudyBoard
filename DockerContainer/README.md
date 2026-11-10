@@ -2,9 +2,14 @@
 
 This folder holds everything needed to package the StudyBoard site as one Docker image with Apache httpd, and to run it on an Amazon EC2 server. The wiki page Docker Creation shows every step with screenshots.
 
+This is the retained Project 1 static frontend container, not the Project 2
+Cloud Run deployment. Issue #15 updates its build stage to read `frontend/`;
+the Docker build context remains the repository root. Project 2's Express API
+and source-based Cloud Run deployment are tracked separately.
+
 | File | What it is |
 | --- | --- |
-| `Dockerfile` | Two stages. Stage 1 (`node:20-alpine`) runs `npm install` and the Vite build into `dist/`. Stage 2 (`httpd:2.4-alpine`) adds our `httpd.conf` and copies only `dist/` into Apache's web folder. |
+| `Dockerfile` | Two stages. Stage 1 (`node:22-alpine`) installs `frontend/` dependencies with `npm ci` and builds into `/build/dist/`. Stage 2 (`httpd:2.4-alpine`) adds our `httpd.conf` and copies that static output into Apache's web folder. |
 | `httpd.conf` | Apache configuration: port 80, the modules the site needs, `DocumentRoot`, `index.html` for folders, no folder listings, `/app` and `/login` redirected to `/app/` and `/login/`, and logs sent to `docker logs`. |
 | `README.md` | This file. |
 

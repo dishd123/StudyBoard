@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import MaterialTab from '../../src/components/MaterialTab.jsx';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
+import MaterialTab from '../src/components/MaterialTab.jsx';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
 import { button, click, fakeRequests, finishRequests, setupUi } from './helpers/ui.jsx';
 
 const ui = setupUi();

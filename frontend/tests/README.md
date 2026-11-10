@@ -11,17 +11,20 @@ From the StudyBoard repository root, after dependencies have been installed:
 npm run test:frontend
 ```
 
-For a fresh checkout, install the root dependencies first with `npm ci`.
+For a fresh checkout, install frontend dependencies with `npm ci --prefix frontend`.
+The root command delegates to the frontend package; alternatively, from
+`frontend/`, run `npm run test:frontend` directly.
 No development server, browser account, microphone permission, Firebase project,
 API key, cloud service, or backend process is needed. The command runs once
 and exits with a failure status if any assertion fails. Vitest and jsdom are
 already root dev dependencies; this issue adds no dependencies or config changes.
 
 Tests stay in the existing `frontend/tests/` directory because
-`vitest.config.js` already discovers it. The issue's original `tests/frontend/`
+`frontend/vitest.config.js` discovers it. The issue's original `tests/frontend/`
 and `src/**/*.test.jsx` paths were proposed alternatives, not existing directories
-that need a second runner. Test files use the current `src/` layout; update
-their import/HTML paths when issue #15 relocates the frontend.
+that need a second runner. Issue #15 moves the app to `frontend/src/`; test
+imports now resolve that package-local source. Both root and frontend commands
+run the same suite.
 
 ## Coverage
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApiError, createApiClient } from '../../src/services/apiClient.js';
+import { ApiError, createApiClient } from '../src/services/apiClient.js';
 
 // Injected transport only: no test in this file calls the global network fetch.
 function client(response = { ok: true, status: 200, headers: new Headers(), text: async () => '{"saved":true}' }) {

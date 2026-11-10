@@ -1,7 +1,7 @@
 import React from 'react';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
-import SiteNav from '../../src/SiteNav.jsx';
+import SiteNav from '../src/SiteNav.jsx';
 import { setupUi } from './helpers/ui.jsx';
 
 const ui = setupUi();
@@ -39,15 +39,15 @@ describe('Project 1 navigation preservation', () => {
     document.body.append(host);
     try {
       vi.resetModules();
-      await import('../../js/site.js');
+      await import('../js/site.js');
       checkNavigation(host, route === '/index.html' ? '/' : route);
       expect(host.querySelector('footer').textContent).toContain('StudyBoard');
     } finally { host.remove(); }
   });
 
   it('retains both React HTML entry points and the Home App-launch link', () => {
-    // The documented npm command runs at the repository root. Vitest exposes
-    // browser module URLs here, so resolve HTML through the working directory.
+    // Root npm scripts delegate to the frontend package. Its working directory
+    // contains these HTML entries; Vitest exposes browser module URLs here.
     const home = readFileSync('index.html', 'utf8');
     const app = readFileSync('app/index.html', 'utf8');
     const login = readFileSync('login/index.html', 'utf8');
