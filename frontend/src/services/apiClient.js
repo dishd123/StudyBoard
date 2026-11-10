@@ -66,10 +66,39 @@ function httpError(status, requestId) {
   });
 }
 
+// Classify routes to fixed labels only. Paths, query values and IDs are never
+// passed to diagnostics. Unknown/new routes keep a bounded fallback label.
+function diagnosticOperation(path, options) {
+  if (typeof path !== 'string') return 'unknown';
+  const pathname = path.split(/[?#]/, 1)[0].replace(/\/$/, '');
+  const method = typeof options?.method === 'string' ? options.method.toUpperCase() : 'GET';
+  if (pathname === '/api/agent-check' && ['GET', 'POST'].includes(method)) return 'agent_check';
+  if (pathname === '/api/sessions') return { GET: 'session_list', POST: 'session_create' }[method] ?? 'unknown';
+  if (/^\/api\/sessions\/[^/]+$/.test(pathname)) {
+    return { GET: 'session_read', PATCH: 'session_rename', DELETE: 'session_delete' }[method] ?? 'unknown';
+  }
+  if (/^\/api\/sessions\/[^/]+\/cards\/[^/]+$/.test(pathname)) {
+    return { PATCH: 'card_update', DELETE: 'card_delete' }[method] ?? 'unknown';
+  }
+  if (/^\/api\/sessions\/[^/]+\/cards$/.test(pathname) && method === 'GET') return 'cards_list';
+  if (/^\/api\/sessions\/[^/]+\/questions$/.test(pathname)) {
+    return { GET: 'question_history', POST: 'tutor_question' }[method] ?? 'unknown';
+  }
+  if (method !== 'POST') return 'unknown';
+  const action = pathname.match(/^\/api\/sessions\/[^/]+\/(picker|photo|audio|build)$/)?.[1];
+  return { picker: 'photos_picker', photo: 'photo_import', audio: 'audio_submit', build: 'study_build' }[action] ?? 'unknown';
+}
+
+function diagnosticTime() {
+  try { return globalThis.performance?.now() ?? Date.now(); }
+  catch { return null; }
+}
+
 /**
  * Create the shared client at the auth boundary once Firebase is connected.
  * getIdToken is awaited on every request; the client never caches tokens.
  * fetchImpl and createRequestId may be injected for offline/mock verification.
+ * diagnostics may be a createClientLogger() instance; omitted means no logging.
  *
  * request/get/post/patch/delete accept an /api path and an options object:
  * { json?, body?, headers?, photosToken?, signal? }. Use json for JSON payloads,
@@ -78,9 +107,10 @@ function httpError(status, requestId) {
 export function createApiClient({
   getIdToken = async () => null,
   fetchImpl = (...args) => globalThis.fetch(...args),
-  createRequestId = () => globalThis.crypto.randomUUID()
+  createRequestId = () => globalThis.crypto.randomUUID(),
+  diagnostics = null
 } = {}) {
-  async function request(path, options = {}) {
+  async function performRequest(path, options = {}) {
     const requestId = createRequestId();
     const target = normalizePath(path, requestId);
     if (!options || typeof options !== 'object' || Array.isArray(options) ||
@@ -180,6 +210,23 @@ export function createApiClient({
       throw new ApiError('Could not reach the service. Check your connection and try again.', {
         code: 'NETWORK_ERROR', requestId: responseId, retryable: true
       });
+    }
+  }
+
+  async function request(path, options = {}) {
+    const startedAt = diagnostics ? diagnosticTime() : null;
+    try {
+      return await performRequest(path, options);
+    } catch (error) {
+      try {
+        if (typeof diagnostics?.apiFailure === 'function') {
+          const finishedAt = diagnosticTime();
+          const durationMs = startedAt !== null && finishedAt !== null ? finishedAt - startedAt : null;
+          const pending = diagnostics.apiFailure(diagnosticOperation(path, options), error, { durationMs });
+          if (pending && typeof pending.then === 'function') Promise.resolve(pending).catch(() => {});
+        }
+      } catch { /* A broken diagnostic sink does not alter the original failure. */ }
+      throw error;
     }
   }
 
