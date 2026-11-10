@@ -1,8 +1,8 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import Dashboard from '../../src/pages/Dashboard.jsx';
-import App from '../../src/app/App.jsx';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
+import Dashboard from '../src/pages/Dashboard.jsx';
+import App from '../src/app/App.jsx';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
 import { button, choose, click, fill, setupUi, submit } from './helpers/ui.jsx';
 
 const ui = setupUi();

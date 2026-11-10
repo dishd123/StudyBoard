@@ -2,10 +2,16 @@
 
 Owner: Huda Joad. Related issue: [#2](https://github.com/dishd123/StudyBoard/issues/2).
 
+Current layout update — issue #15: frontend source, static pages, assets, and
+Vite/Vitest configuration now live under `frontend/`. Root development commands
+delegate to that package. The component tree and verification below record the
+Phase 0 baseline; interpret its frontend source paths relative to `frontend/`
+after relocation. See [current layout and commands](frontend-layout.md).
+
 ## Entry points and component tree
 
 The existing Vite entry points and static pages are retained. The `frontend/`
-directory relocation is tracked separately under issue #15.
+directory relocation is documented separately under issue #15.
 
 ```text
 src/

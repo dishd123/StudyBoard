@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
-import { createNotesPreview } from '../../src/fixtures/notesPreview.js';
-import { createSamplePhoto } from '../../src/fixtures/materialPreview.js';
-import { createTutorPreview } from '../../src/fixtures/tutorPreview.js';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
+import { createNotesPreview } from '../src/fixtures/notesPreview.js';
+import { createSamplePhoto } from '../src/fixtures/materialPreview.js';
+import { createTutorPreview } from '../src/fixtures/tutorPreview.js';
 
 describe('independent revised-proposal fixtures', () => {
   it('represents empty and new draft sessions without invented material', () => {

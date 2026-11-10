@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import StatusMessage from '../../src/components/StatusMessage.jsx';
+import StatusMessage from '../src/components/StatusMessage.jsx';
 import { button, click, setupUi } from './helpers/ui.jsx';
 
 const ui = setupUi();

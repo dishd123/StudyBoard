@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
-import TutorPanel from '../../src/components/TutorPanel.jsx';
-import { createWorkspaceFixture } from '../../src/fixtures/workspaces.js';
+import TutorPanel from '../src/components/TutorPanel.jsx';
+import { createWorkspaceFixture } from '../src/fixtures/workspaces.js';
 import { button, click, fakeRequests, fill, finishRequests, setupUi, submit } from './helpers/ui.jsx';
 
 const ui = setupUi();
