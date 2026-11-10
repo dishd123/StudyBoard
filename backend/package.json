@@ -7,9 +7,10 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "check": "node --check services/geminiAudioService.js && node --check routes/audio.js && node --check scripts/testGeminiAudio.js"
+    "check": "node --check services/geminiAudioService.js && node --check routes/audio.js && node --check scripts/testGeminiAudio.js && node --check agents/notesContract.js && node --check agents/notesAgent.js"
   },
   "dependencies": {
+    "@google/adk": "2.4.0",
     "@google/genai": "3.0.0",
     "express": "5.3.0",
     "multer": "2.5.0"
