@@ -178,14 +178,23 @@ events. The module adds no logger, database tool, retrieval tool, or media call.
 Run from the repository root:
 
 ```powershell
+node --test backend/tests/notesAgent.test.js
+npm test --prefix backend
 npm run check --prefix backend
 npm run check
 npm run build
 ```
 
-Dedicated notesAgent automated tests and fuller evaluation belong to Issue #74
-and are not included in this branch. Production runtime validation remains part
-of Issue #46.
+Issue #74 adds `backend/tests/notesAgent.test.js`, using Node's built-in test
+runner and repeatable complete, board-only, and audio-only fixtures under
+`backend/tests/fixtures/notesAgent.js`. Tests exercise the production validators,
+lifecycle callbacks, and real ADK InMemoryRunner with controlled local BaseLlm
+output. They cover matching explanations, separate corrections, emphasis,
+unmatched content, unreadable items, board ordering, provenance, two-sentence
+summaries, malformed output, and rejection before invalid notes reach state.
+No live Gemini requests are made. These checks verify the alignment contract;
+semantic alignment quality from a live model still requires separate evaluation.
+Production runtime validation remains part of Issue #46.
 
 The dependency installation initially reported transitive advisories; compatible
 `npm audit fix --ignore-scripts` updates resolved them without adding direct
