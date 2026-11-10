@@ -156,6 +156,23 @@ framework/provider events. The build service owns retry and persistence.
 Run `npm run check --prefix backend` for syntax checks, plus the existing root
 `npm run check` and `npm run build` commands.
 
+Issue #75 adds `backend/tests/cardsAgent.test.js`, using Node's built-in test
+runner. Run `node --test backend/tests/cardsAgent.test.js` for this file, or
+`npm test --prefix backend` for the full backend suite. Repeatable fixtures in
+`backend/tests/fixtures/cardsAgent.js` reuse the notesAgent sources and extend
+them with supported facts for distinct five- and ten-card decks. They include
+conceptual explanation questions, a separate spoken correction, board-only
+facts, audio-only context, unresolved warnings, and invalid-reference/empty
+output variants.
+
+Tests cover the production validator and callbacks, as well as publication
+through the real ADK InMemoryRunner with a controlled local BaseLlm. They check
+that saved notesResult is the only required source state, input is preserved,
+and invalid results are rejected. They verify the prompt's correction and
+source-grounding rules alongside controlled correct output. Semantic entailment
+and arbitrary paraphrase detection remain model/evaluation responsibilities;
+these tests make no live Gemini calls and add no semantic validator.
+
 Temporary checks outside the repository confirmed module imports, acceptance of
 the existing notesResult without notesInput, 5- and 10-card boundaries, rejection
 of malformed results and unsupported steps, and 25 controlled validation failures.
@@ -163,6 +180,6 @@ An offline `BaseLlm` ran through the real ADK `InMemoryRunner`, read only saved
 notesResult, preserved it, and wrote cardsResult. Malformed JSON, bad counts, and
 invalid references left cardsResult cleared. The existing notesAgent was also
 run offline to verify that shared validation extraction preserved its behavior.
-No live/paid model requests, database operations, or dedicated repository test
-files were added. Dedicated cardsAgent tests and semantic quality evaluation
-remain separate work.
+These original Issue #47 checks used no live/paid model requests or database
+operations. Dedicated repository tests are now included in Issue #75; semantic
+quality evaluation remains separate work.
