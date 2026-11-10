@@ -7,7 +7,7 @@ const links = [
 
 export default function SiteNav({ active }) {
   return (
-    <nav className="navbar navbar-expand-lg site-nav">
+    <nav className="navbar navbar-expand-lg site-nav" aria-label="Main navigation">
       <div className="container">
         <a className="navbar-brand" href="/">
           <span className="brand-mark">S</span> StudyBoard
@@ -27,13 +27,13 @@ export default function SiteNav({ active }) {
           <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
             {links.map(([href, label]) => (
               <li className="nav-item" key={href}>
-                <a className={href === active ? 'nav-link active' : 'nav-link'} href={href}>
+                <a className={href === active ? 'nav-link active' : 'nav-link'} href={href} aria-current={href === active ? 'page' : undefined}>
                   {label}
                 </a>
               </li>
             ))}
             <li className="nav-item">
-              <a className="btn btn-sm btn-dark nav-login" href="/login/">Sign in</a>
+              <a className="btn btn-sm btn-dark nav-login" href="/login/" aria-current={active === '/login/' ? 'page' : undefined}>Sign in</a>
             </li>
           </ul>
         </div>

@@ -287,3 +287,20 @@
 .tutor-sources { margin-top: .75rem; color: #dceae4; font-size: .85rem; }
 .tutor-sources p { margin-bottom: .35rem; }
 .review-deck :is(button, input):focus-visible, .tutor-panel :is(button, input):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+
+/* Keep the auth preview readable with one form visible at a time. */
+.auth-page .auth-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.auth-preview-card { flex-direction: column; justify-content: center; align-items: stretch; min-width: 0; }
+.auth-preview-card .workspace-demo-notice { font-size: .85rem; line-height: 1.5; }
+.auth-preview-card .account-form { max-height: none; overflow: visible; }
+.auth-preview-card .account-title { font-size: 2rem; }
+.auth-preview-card h1 { overflow-wrap: anywhere; }
+.auth-preview-link { display: inline-block; margin-top: 1.5rem; color: var(--teal); font-weight: 700; }
+.site-nav :is(a, button):focus-visible, .auth-preview-card :is(a, button, input, h1):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+@media (max-width: 767px) {
+  .auth-page .auth-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 575px) {
+  /* Match the static pages' horizontal row gutters to their container padding. */
+  main > section.container > .row.g-5 { --bs-gutter-x: 1.5rem; }
+}
