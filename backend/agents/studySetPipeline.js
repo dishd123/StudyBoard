@@ -20,12 +20,16 @@ const errorMessages = {
   ADK_EXECUTION_FAILED: 'The study-set pipeline could not complete. Please try again.',
   ADK_SESSION_CLEANUP_FAILED: 'The temporary study-set session could not be discarded.'
 };
+const invalidResultCodes = new Set([
+  'MISSING_NOTES_RESULT', 'INVALID_NOTES_RESULT', 'MISSING_CARDS_RESULT', 'INVALID_CARDS_RESULT'
+]);
 
 export class StudySetPipelineError extends Error {
-  constructor(code) {
+  constructor(code, { retryable = invalidResultCodes.has(code) } = {}) {
     super(errorMessages[code]);
     this.name = 'StudySetPipelineError';
     this.code = code;
+    this.retryable = retryable === true;
   }
 }
 
@@ -43,9 +47,23 @@ export function createStudySetPipeline({ notesModel, cardsModel } = {}) {
 
 function executionError(error) {
   if (error instanceof StudySetPipelineError) return error;
-  if (error instanceof NotesAgentError) return new StudySetPipelineError('NOTES_AGENT_FAILED');
-  if (error instanceof CardsAgentError) return new StudySetPipelineError('CARDS_AGENT_FAILED');
+  if (error instanceof NotesAgentError) {
+    return new StudySetPipelineError('NOTES_AGENT_FAILED', {
+      retryable: ['INVALID_NOTES_OUTPUT', 'NOTES_MODEL_FAILED'].includes(error.code)
+    });
+  }
+  if (error instanceof CardsAgentError) {
+    return new StudySetPipelineError('CARDS_AGENT_FAILED', {
+      retryable: ['INVALID_CARDS_OUTPUT', 'CARDS_MODEL_FAILED'].includes(error.code)
+    });
+  }
   return new StudySetPipelineError('ADK_EXECUTION_FAILED');
+}
+
+function retryableModelError(errorCode) {
+  const code = String(errorCode);
+  return ['UNKNOWN_ERROR', '408', '429', 'DEADLINE_EXCEEDED', 'RESOURCE_EXHAUSTED', 'INTERNAL', 'UNAVAILABLE'].includes(code)
+    || (/^5\d\d$/.test(code));
 }
 
 function validateStateResults(state, input) {
@@ -106,7 +124,9 @@ export function createStudySetExecutor({
         if (event.errorCode) {
           const code = event.author === 'notesAgent' ? 'NOTES_AGENT_FAILED'
             : event.author === 'cardsAgent' ? 'CARDS_AGENT_FAILED' : 'ADK_EXECUTION_FAILED';
-          throw new StudySetPipelineError(code);
+          throw new StudySetPipelineError(code, {
+            retryable: code !== 'ADK_EXECUTION_FAILED' && retryableModelError(event.errorCode)
+          });
         }
       }
       const session = await runner.sessionService.getSession(address);

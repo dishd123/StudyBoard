@@ -9,8 +9,8 @@ notesAgent -> cardsAgent
 
 This implements [Issue #48](https://github.com/dishd123/StudyBoard/issues/48).
 There is no Firestore access, database session-status update, card deletion,
-HTTP route, or build retry here. Persistence and retry orchestration remain in
-Issue #49. No dependencies were added.
+HTTP route, or build retry here. The [build service](build-service.md) owns
+persistence and retry orchestration for Issue #49. No dependencies were added.
 
 ## Exports and model configuration
 
@@ -124,7 +124,7 @@ and `validateCardsResult(cardsResult, notesResult)` before returning. This
 reuses source-preservation, correction, ordering, card-count, uniqueness, and
 source-step membership checks; it does not duplicate their logic. Missing state
 or invalid results are rejected rather than reconstructed from event text or
-reused from an earlier build. The future build service receives only these
+reused from an earlier build. The build service receives only these
 validated objects and may apply its own build-level validation/persistence.
 
 ## Safe failures
@@ -147,6 +147,15 @@ error causes. A notes failure stops execution before cards. Cleanup is attempted
 after failures too; if both execution and cleanup fail, the original safe
 execution error is preserved. An otherwise successful build does not return
 results if cleanup reports failure. There are no application-level retries.
+
+`StudySetPipelineError.retryable` supplies a safe boolean for the build service.
+Missing/invalid final results and typed agent output/generation failures are
+retryable. Model events with transient status codes (408, 429, 5xx and equivalent
+named statuses) are retryable; ADK's `UNKNOWN_ERROR` events, including callback
+output-validation failures, are also retryable. Numeric authentication/request
+errors, missing credentials, input/configuration errors, unclassified execution
+errors, and session/cleanup failures are not. The pipeline itself still executes
+only once per invocation and exposes no provider error details.
 
 ## Local verification
 
