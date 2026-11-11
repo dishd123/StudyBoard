@@ -74,6 +74,10 @@ The retained static Apache/Docker workflow is documented separately in
 [DockerContainer/README.md](DockerContainer/README.md); it does not serve the
 Project 2 API.
 
+Environment variable names and local setup are documented in
+[docs/environment.md](docs/environment.md). Copy the placeholder files before
+local development; keep populated `.env` files and all credentials untracked.
+
 ## Root build and runtime commands — issue #13
 
 Use Node 22.12 or newer within the Node 22 major version, matching the root
