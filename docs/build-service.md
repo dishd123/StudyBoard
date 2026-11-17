@@ -159,6 +159,12 @@ output and step references, retry success/exhaustion, failed-state storage,
 replacement/reset on rebuild, persistence failure, and concurrent input/owner
 changes. They also exercised malformed-output retry through the real ADK
 SequentialAgent/InMemoryRunner with controlled local models and two fresh ADK
-sessions. No live model/database calls or dedicated Issue #76 tests were added.
+sessions. No live model/database calls were made.
 The checks included 28 controlled failure cases; real ADK request/authentication
 errors (400/401/403) and missing API configuration stopped after one attempt.
+
+Issue #76 adds `backend/tests/buildService.test.js` and a reusable build fixture.
+Run `node --test backend/tests/buildService.test.js` for the focused suite or
+`npm test --prefix backend` for all backend tests. The suite exercises the real
+service through injected pipeline and persistence mocks, including retries,
+3–12 card boundaries, replacement, conflicts, and failed-state writes.
