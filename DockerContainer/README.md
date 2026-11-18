@@ -24,7 +24,7 @@ Run these from the repository root, not from this folder:
 ```
 docker build -f DockerContainer/Dockerfile -t project1-part2:1.0 .
 docker image inspect project1-part2:1.0 --format "{{.Os}}/{{.Architecture}}"
-docker run -d --name project1-local -p 8080:80 project1-part2:1.0
+docker run -d --name project1-local -p 127.0.0.1:8080:80 project1-part2:1.0
 ```
 
 Open `http://localhost:8080` and check all five pages. Then remove the test container:

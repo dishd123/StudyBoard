@@ -1,0 +1,11 @@
+rules_version = '2';
+// Firestore Security Rules for StudyBoard (issue #32). Firebase requires rules_version as the first line.
+// Browsers never read or write Firestore; the Express server uses the Admin SDK, which these rules do not apply to.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny every client read and write, on every document at any depth.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

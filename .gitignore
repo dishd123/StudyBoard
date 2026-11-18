@@ -17,6 +17,8 @@ credentials.json
 service-account*.json
 serviceAccount*.json
 *-firebase-adminsdk-*.json
+# A key downloaded from the Google Cloud console is named <project id>-<key id>.json.
+gen-lang-client-*.json
 *.pem
 *.key
 

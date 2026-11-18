@@ -1,0 +1,6 @@
+# Files that `gcloud run deploy --source .` leaves out of the upload (new issue).
+# Everything .gitignore skips (node_modules, dist, .env files, keys) stays local, plus these folders.
+#!include:.gitignore
+.git
+DockerContainer/
+docs/
