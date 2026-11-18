@@ -1,3 +1,5 @@
+/* Shared styles of every StudyBoard page (issue #156): the Project 1 rules first, unchanged, then the Project 2 app's rules. */
+/* The static pages load it as /css/site.css (the build copies it into dist/css); Vite bundles it into the React pages' CSS. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 :root{--ink:#18252b;--muted:#66757c;--cream:#f8f6f0;--mint:#d9f2e7;--teal:#176b61;--orange:#f4a261;--line:#dbe2dc}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--cream);font-family:'DM Sans',sans-serif}h1,h2,h3,.navbar-brand{font-family:'Space Grotesk',sans-serif}h1{font-size:clamp(2.7rem,6vw,5.3rem);line-height:.98;letter-spacing:-.06em}h2{font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.04em}h3{font-size:1.25rem}.lead{color:var(--muted);max-width:580px;font-size:1.17rem;line-height:1.7}.narrow{max-width:650px}.site-nav{padding:1.15rem 0;background:rgba(248,246,240,.95);border-bottom:1px solid var(--line)}.navbar-brand{font-size:1.35rem;font-weight:700}.brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;margin-right:5px;background:var(--teal);color:white;border-radius:10px;font-size:1rem}.nav-link{color:var(--muted);font-weight:500}.nav-link:hover,.nav-link.active{color:var(--teal)}.nav-login{padding:.55rem 1.2rem;border-radius:999px}.eyebrow{color:var(--teal);font-size:.75rem;font-weight:700;letter-spacing:.14em;margin-bottom:1rem}.btn-primary{background:var(--teal);border-color:var(--teal);border-radius:999px;padding:.75rem 1.35rem}.btn-primary:hover{background:#0e514a;border-color:#0e514a}.btn-outline-dark{border-radius:999px;padding:.75rem 1.35rem}.hero{min-height:650px;display:flex;align-items:center}.trust-line{color:var(--muted);font-size:.9rem}.status-dot{display:inline-block;width:8px;height:8px;background:#52ad76;border-radius:50%;margin-right:7px}.image-slot{position:relative;overflow:hidden;display:grid;place-items:center;background:var(--mint);border:1px dashed #7ab89f;border-radius:28px;color:var(--teal);text-align:center;font-weight:700;letter-spacing:.08em;min-height:300px}.image-slot small{font-weight:400;letter-spacing:0}.hero-visual{min-height:440px;background:#cfeade}.hero-visual:before,.hero-visual:after{content:'';position:absolute;border:2px solid rgba(23,107,97,.2);border-radius:50%}.hero-visual:before{width:360px;height:360px}.hero-visual:after{width:210px;height:210px}.board-lines{position:absolute;width:68%;height:45%;border:2px solid rgba(23,107,97,.25);transform:rotate(-7deg);border-radius:6px}.section-muted{background:#eaf1eb}.section-heading{max-width:650px}.feature-card{height:100%;padding:2rem;background:var(--cream);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 30px rgba(24,37,43,.04)}.feature-icon{display:grid;place-items:center;width:44px;height:44px;margin-bottom:2rem;color:var(--teal);background:var(--mint);border-radius:13px;font-size:1.35rem}.feature-card p{color:var(--muted);line-height:1.6}.callout{display:flex;align-items:center;justify-content:space-between;gap:2rem;padding:3rem;background:var(--orange);border-radius:24px}.callout h2{max-width:550px}.page-hero{padding:7rem 0 5rem}.about-visual,.contact-visual{min-height:390px}.principles{margin-top:2rem;border-top:1px solid var(--line)}.principles div{display:flex;gap:1.5rem;padding:1rem 0;border-bottom:1px solid var(--line)}.principles strong{color:var(--teal)}.contact-form{padding:2rem;background:white;border:1px solid var(--line);border-radius:22px}.contact-form label{display:block;margin:1rem 0 .4rem;font-weight:700}.contact-form label:first-child{margin-top:0}.contact-form .form-control,.auth-form .form-control{padding:.8rem;border-color:var(--line);border-radius:10px}.contact-note{margin-top:1.5rem;color:var(--muted);line-height:1.8}.contact-note a{color:var(--teal)}.form-status{margin:1rem 0 0;color:var(--teal)}.site-footer{margin-top:3rem;padding:2rem 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
 .app-back{color:var(--muted);text-decoration:none;font-size:.9rem}.app-back:hover{color:var(--teal)}.avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--orange);font-size:.75rem;font-weight:700}.app-shell{padding:4rem 0 6rem}.app-welcome{display:flex;justify-content:space-between;align-items:end;gap:2rem;margin-bottom:3rem}.app-welcome h1{font-size:clamp(2.5rem,5vw,4.5rem);margin-bottom:.7rem}.app-welcome .lead{font-size:1rem}.column-heading,.panel-heading{display:flex;align-items:start;justify-content:space-between;gap:1rem}.column-heading{margin-bottom:1rem}.column-heading h2{font-size:1.5rem}.column-heading span,.progress-count,.session-card small,.session-card span{color:var(--muted);font-size:.82rem}.session-card{width:100%;display:flex;align-items:center;gap:1rem;text-align:left;padding:1rem;margin-bottom:.8rem;background:transparent;border:1px solid transparent;border-radius:16px;transition:all .2s}.session-card:hover,.session-card.selected{background:white;border-color:var(--line);box-shadow:0 8px 24px rgba(24,37,43,.05)}.session-card.selected{border-left:4px solid var(--teal);padding-left:calc(1rem - 3px)}.session-swatch{flex:none;width:42px;height:50px;border-radius:9px}.session-swatch.mint{background:var(--mint)}.session-swatch.peach{background:#fbd8bc}.session-swatch.lavender{background:#dcdaf3}.session-card h3{font-size:.95rem;margin:.2rem 0}.session-arrow{margin-left:auto;font-size:1.1rem!important;color:var(--teal)!important}.text-button{padding:1rem 0;color:var(--teal);font-weight:700;background:none;border:0}.workspace-panel{height:100%;padding:1.5rem;background:white;border:1px solid var(--line);border-radius:22px}.panel-heading h2{font-size:1.6rem;margin-bottom:1.3rem}.icon-button{border:0;background:var(--cream);color:var(--muted);border-radius:9px;padding:.35rem .6rem}.board-preview{position:relative;min-height:245px;background:#f0ede1;border:10px solid #d4cbb5;border-radius:7px;box-shadow:inset 0 0 0 2px #b8ae95;overflow:hidden}.board-preview:before{content:'';position:absolute;inset:25px;background:repeating-linear-gradient(0deg,transparent 0 37px,rgba(64,87,78,.13) 38px 39px);transform:rotate(-2deg)}.board-note{position:absolute;color:#415c50;font-family:'Space Grotesk';font-weight:600;font-size:.7rem;line-height:1.6;z-index:1}.board-note span{font-size:1.1rem}.note-one{top:45px;left:45px;transform:rotate(-5deg)}.note-two{top:70px;right:35px;transform:rotate(4deg)}.note-three{bottom:35px;left:75px;transform:rotate(2deg)}.board-stamp{position:absolute;right:25px;bottom:25px;border:2px solid #d38245;color:#c6783e;border-radius:50%;padding:9px 7px;text-align:center;font-size:.6rem;transform:rotate(-12deg)}.board-meta{display:flex;justify-content:space-between;gap:1rem;margin-top:1rem;color:var(--muted);font-size:.78rem}.tag{padding:.3rem .6rem;background:var(--mint);color:var(--teal);border-radius:999px}.flashcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;width:100%;min-height:205px;padding:1.5rem;background:var(--mint);border:0;border-radius:16px;color:var(--ink);text-align:left;transition:transform .2s}.flashcard:hover{transform:translateY(-3px)}.flashcard strong{font-family:'Space Grotesk';font-size:1.25rem;line-height:1.3}.flashcard small{margin-top:auto;color:var(--teal)}.card-label{margin-bottom:1.3rem;color:var(--teal);font-size:.7rem;font-weight:700;letter-spacing:.13em}.deck-controls{display:flex;justify-content:space-between;margin-top:1rem}.tutor-panel{background:#263b3a;color:white}.tutor-panel .eyebrow{color:#9ed7ba}.tutor-panel h2{font-size:1.6rem}.panel-copy{color:#c1d1cc;font-size:.9rem}.tutor-bubble{display:flex;gap:.7rem;align-items:start;min-height:100px;padding:1rem 0;color:#dceae4;font-size:.9rem}.tutor-avatar{flex:none;background:#5fae8a;color:#15332b}.tutor-form{display:flex;padding:.3rem;background:#385350;border:1px solid #5e746d;border-radius:12px}.tutor-form input{width:100%;padding:.45rem .6rem;color:white;background:transparent;border:0;outline:0}.tutor-form input::placeholder{color:#bdd0c9}.tutor-form button{width:34px;border:0;border-radius:9px;background:var(--orange);color:var(--ink);font-weight:700}.voice-button{margin-top:1rem;padding:0;color:#b7d9ca;background:transparent;border:0;font-size:.8rem}
@@ -9,7 +11,7 @@
 .auth-caption { position: absolute; right: 1.25rem; bottom: 1rem; margin: 0; padding: .35rem .65rem; background: rgba(248,246,240,.82); border-radius: 999px; color: var(--ink); font-size: .7rem; letter-spacing: .02em; }
 @media (max-width: 767px) { .auth-visual { min-height: 280px; } }
 
-/* Project 2 workspace shell; detailed feature states are added in later issues. */
+/* Session workspace: the session card title, the session heading, the Material, Notes and Study tabs, and visible focus. */
 .session-card .session-card-title {
   display: block;
   margin: .2rem 0;
@@ -17,19 +19,6 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: .95rem;
   font-weight: 600;
-}
-.workspace-board-image {
-  display: block;
-  width: 100%;
-  border-radius: 6px;
-}
-.workspace-demo-notice {
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  color: var(--teal);
-  background: var(--mint);
 }
 .workspace-heading {
   margin: 1rem 0 1.5rem;
@@ -62,14 +51,8 @@
   outline: 3px solid var(--orange);
   outline-offset: 3px;
 }
-.workspace-placeholder {
-  padding: 1rem;
-  margin-bottom: 1.25rem;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-}
 
-/* Shared async feedback; text/labels convey state without relying on color. */
+/* StatusMessage: the one status line of each action; its text, not only its color, says what happened. */
 .status-message {
   display: flex;
   align-items: center;
@@ -90,22 +73,11 @@
   gap: .75rem;
   min-width: 0;
 }
-.status-message__text {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.status-message__label {
-  display: block;
-  margin-bottom: .2rem;
-}
-.status-message--loading,
 .status-message--success {
   background: var(--mint);
   border-color: #8dbda7;
 }
-.status-message--error,
-.status-message--service-error,
-.status-message--validation-error {
+.status-message--error {
   color: #7e211c;
   background: #fff0ee;
   border-color: #c88680;
@@ -136,13 +108,6 @@
   opacity: .65;
   cursor: wait;
 }
-.tutor-feedback {
-  flex: 1;
-  min-width: 0;
-}
-.tutor-feedback .status-message {
-  margin: 0;
-}
 @keyframes status-spin {
   to { transform: rotate(360deg); }
 }
@@ -154,7 +119,7 @@
   .status-message__retry { align-self: flex-start; }
 }
 
-/* Local dashboard controls; persistence is connected in the later API issue. */
+/* Dashboard: the course filter, and the icon, details and status chip of each session card. */
 .dashboard-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -164,20 +129,12 @@
   margin-bottom: 1.5rem;
 }
 .course-filter { flex: 1 1 220px; min-width: 0; max-width: 360px; }
-.course-filter label, .session-dialog label {
+.course-filter label {
   display: block;
   margin-bottom: .4rem;
   font-weight: 700;
 }
-.session-actions, .session-dialog-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .75rem;
-}
-.session-actions .btn-outline-danger { border-radius: 999px; }
-.session-list { padding: 0; margin: 0; list-style: none; }
 .session-card-content { min-width: 0; overflow-wrap: anywhere; }
-.session-card time { display: block; color: var(--muted); font-size: .75rem; }
 .session-thumbnail {
   flex: none;
   width: 52px;
@@ -185,57 +142,23 @@
   border-radius: 9px;
   object-fit: cover;
 }
-.session-thumbnail--empty {
-  display: grid;
-  place-items: center;
-  background: var(--mint);
-  text-align: center;
-}
 .session-card-details { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .35rem; }
 .session-card .session-status { padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
 .session-card .session-status--draft { color: #42504b; background: #e8ece9; }
 .session-card .session-status--ready { color: #155a43; background: var(--mint); }
 .session-card .session-status--failed { color: #7e211c; background: #fff0ee; }
-.session-card .session-status--processing { color: #654408; background: #fff1cc; }
-.session-open-action { margin-top: 1rem; }
 .panel-heading > div { min-width: 0; }
 .panel-heading h2 { overflow-wrap: anywhere; }
-.panel-heading .icon-button { flex: none; }
-.dashboard-preview .workspace-board-image { height: 320px; object-fit: contain; }
-.session-dialog {
-  width: min(540px, calc(100% - 2rem));
-  max-height: calc(100dvh - 2rem);
-  padding: 1.75rem;
-  overflow-y: auto;
-  color: var(--ink);
-  background: var(--cream);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px #18252b33;
-}
-.session-dialog::backdrop { background: #18252b88; }
-.session-dialog h2 { font-size: 1.8rem; overflow-wrap: anywhere; }
-.session-dialog p { overflow-wrap: anywhere; }
-.session-dialog input { margin-bottom: 1rem; }
-.session-dialog-actions { justify-content: flex-end; margin-top: 1.5rem; }
-.session-dialog-actions .btn { border-radius: 999px; }
-.session-form-hint { color: var(--muted); font-size: .85rem; }
-.session-dialog :is(input, button):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 @media (max-width: 575px) {
   .course-filter { max-width: none; }
-  .session-dialog { padding: 1.25rem; }
 }
 
-/* One-photo/one-recording Material preview shell. */
+/* Material tab: the action buttons, the board steps, the unreadable parts, the transcript and the build panel. */
 .material-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
 .material-actions .btn { white-space: normal; }
-.photo-import-panel .panel-heading { flex-wrap: wrap; }
-.material-photo-preview { margin: 1rem 0; }
-.material-photo-preview img { display: block; width: 100%; height: 300px; object-fit: contain; border-radius: 12px; background: var(--cream); }
-.material-photo-preview figcaption { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; margin-top: .5rem; }
 .material-subheading { margin-top: 1.5rem; }
 .material-steps { padding-left: 1.5rem; }
-.material-steps li, .material-transcript li { margin-bottom: .65rem; overflow-wrap: anywhere; }
+.material-steps li { margin-bottom: .65rem; overflow-wrap: anywhere; }
 .material-unreadable { padding: 1rem; background: #fff1cc; border-radius: 12px; }
 .material-unreadable h3 { font-size: 1rem; }
 .material-unreadable ul { margin-bottom: 0; }
@@ -246,11 +169,8 @@
 .material-build h2 { font-size: 1.6rem; }
 .material-tab :is(button, summary):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 
-/* Read-only board/explanation alignment; correction text accompanies shading. */
-.notes-overview, .notes-panel { height: auto; margin-bottom: 1.5rem; }
-.notes-tab h2 { font-size: 1.6rem; }
-.notes-summary, .notes-action-hint, .notes-unreadable { overflow-wrap: anywhere; }
-.notes-action-hint, .notes-counts { color: var(--muted); font-size: .85rem; }
+/* Notes tab: the summary and the step table; a shaded correction cell still says the correction in words. */
+.notes-summary { overflow-wrap: anywhere; }
 .notes-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
 .notes-table { width: 100%; min-width: 640px; table-layout: fixed; border-collapse: collapse; font-size: .9rem; }
 .notes-table caption { padding: .85rem; color: var(--muted); caption-side: top; text-align: left; }
@@ -258,49 +178,98 @@
 .notes-table thead { background: var(--cream); }
 .notes-table th:first-child { width: 5rem; }
 .notes-table tbody tr:last-child > * { border-bottom: 0; }
-.notes-table p { margin: .5rem 0 0; }
-.notes-row--corrected { background: #fff1cc; }
-.notes-flag { display: inline-block; padding: .15rem .45rem; margin-top: .5rem; border-radius: 8px; color: #7e211c; background: #fff0ee; font-size: .78rem; font-weight: 700; }
-.notes-flag--correction { margin-top: 0; color: #654408; background: #ffe4a3; }
-.notes-unmatched { color: #7e211c; }
-.notes-no-correction { color: var(--muted); }
-.notes-unreadable { padding: 1.25rem; border: 1px solid #cfad5d; border-radius: 12px; color: #654408; background: #fff7df; }
-.notes-unreadable h3 { font-size: 1.1rem; }
-.notes-unreadable ul { margin-bottom: 0; }
-.notes-table-scroll:focus-visible, .notes-tab button:focus-visible, .material-build:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.notes-table-scroll:focus-visible, .material-build:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 
-/* Local Study preview: review progress, safe deletion, and typed fixture replies. */
-.deck-summary, .study-preview-hint { color: var(--muted); font-size: .85rem; }
+/* Study tab: the deck counts and filter, the Got it and Still learning buttons, and the tutor panel. */
+.deck-summary { color: var(--muted); font-size: .85rem; }
 .deck-filter { display: flex; align-items: start; gap: .6rem; margin: 1rem 0; }
 .deck-filter input { flex: none; margin-top: .3rem; }
 .deck-filter label { font-size: .9rem; }
 .card-review-controls { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
 .card-review-controls button { border-radius: 999px; }
 .card-review-controls button[aria-pressed=true] { color: white; background: var(--teal); border-color: var(--teal); }
-.card-delete-confirmation { padding: 1rem; margin-top: 1rem; border: 1px solid #c88680; border-radius: 12px; background: #fff0ee; overflow-wrap: anywhere; }
-.card-delete-confirmation h3 { font-size: 1.1rem; }
-.review-deck .flashcard strong, .tutor-feedback { overflow-wrap: anywhere; }
+.review-deck .flashcard strong { overflow-wrap: anywhere; }
 .review-deck .deck-controls { flex-wrap: wrap; gap: .75rem; }
-.tutor-examples { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1rem 0; }
-.tutor-examples button { padding: .5rem .75rem; color: #e5f6ed; background: #385350; border: 1px solid #8dbda7; border-radius: 12px; font-size: .85rem; }
 .tutor-panel button:disabled, .tutor-form input:disabled { opacity: .65; cursor: not-allowed; }
-.tutor-sources { margin-top: .75rem; color: #dceae4; font-size: .85rem; }
-.tutor-sources p { margin-bottom: .35rem; }
 .review-deck :is(button, input):focus-visible, .tutor-panel :is(button, input):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 
-/* Keep the auth preview readable with one form visible at a time. */
+/* Sign In page: two columns that can shrink without overflowing, one column on phones; visible focus in the menu. */
 .auth-page .auth-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.auth-preview-card { flex-direction: column; justify-content: center; align-items: stretch; min-width: 0; }
-.auth-preview-card .workspace-demo-notice { font-size: .85rem; line-height: 1.5; }
-.auth-preview-card .account-form { max-height: none; overflow: visible; }
-.auth-preview-card .account-title { font-size: 2rem; }
-.auth-preview-card h1 { overflow-wrap: anywhere; }
-.auth-preview-link { display: inline-block; margin-top: 1.5rem; color: var(--teal); font-weight: 700; }
-.site-nav :is(a, button):focus-visible, .auth-preview-card :is(a, button, input, h1):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.site-nav :is(a, button):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 @media (max-width: 767px) {
   .auth-page .auth-layout { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 575px) {
   /* Match the static pages' horizontal row gutters to their container padding. */
   main > section.container > .row.g-5 { --bs-gutter-x: 1.5rem; }
+}
+
+/* Project 2 live app (Firebase sign-in, Google Photos, Gemini, ADK): the rules for its new components. */
+/* Panel titles: the same size as the Project 1 panel headings. */
+.workspace-panel h2 { font-size: 1.6rem; }
+
+/* Bootstrap paints a disabled, pressed or focused .btn-primary blue; these variables keep it the Project 1 teal. */
+.btn-primary { --bs-btn-disabled-bg: var(--teal); --bs-btn-disabled-border-color: var(--teal); --bs-btn-active-bg: #0e514a; --bs-btn-active-border-color: #0e514a; --bs-btn-focus-shadow-rgb: 23, 107, 97; }
+
+/* Navigation: "Hi, <first name>" and the Sign out button. */
+.nav-user { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.nav-greeting { color: var(--muted); font-weight: 500; }
+
+/* Static pages: the Privacy link in the footer and the Privacy page text. */
+.site-footer a { color: var(--teal); }
+.privacy-content h2 { margin-top: 2rem; font-size: 1.6rem; }
+.privacy-content p, .privacy-content li { line-height: 1.7; }
+
+/* Status line: the "working" state of StatusMessage (success and error reuse the rules above). */
+.status-message--working { background: var(--mint); border-color: #8dbda7; }
+
+/* Dashboard: the New session form and the Rename and Delete buttons under each session. */
+.new-session { width: 100%; max-width: 560px; }
+.new-session-form { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
+.new-session-field { flex: 1 1 180px; }
+.new-session-field label { display: block; margin-bottom: .35rem; font-size: .85rem; font-weight: 700; }
+.session-item { margin-bottom: .8rem; }
+.session-item .session-card { margin-bottom: .25rem; }
+.session-card-actions { display: flex; gap: 1.25rem; padding-left: 1rem; }
+.session-card-actions .text-button { padding: .35rem 0; font-size: .85rem; }
+.empty-state { color: var(--muted); }
+
+/* Session workspace: the banner shown when a rebuild is due or the last build failed. */
+.workspace-banner { padding: .9rem 1rem; margin-bottom: 1.5rem; border: 1px solid #cfad5d; border-radius: 12px; color: #654408; background: #fff7df; }
+
+/* Material tab: the board photo sits above the ruled lines of the Project 1 board frame. */
+.board-photo { position: relative; z-index: 1; display: block; width: 100%; border-radius: 6px; }
+.photo-hint { color: var(--muted); font-size: .85rem; }
+
+/* Recorder: a pulsing red dot next to "Recording" and the timer. */
+.recording-indicator { display: flex; align-items: center; gap: .5rem; margin: 1rem 0 0; font-weight: 700; }
+.recording-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: #c62828; animation: recording-pulse 1s ease-in-out infinite; }
+@keyframes recording-pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .recording-dot { animation: none; } }
+
+/* Saved recording: one tag (explanation, correction, emphasis) in front of each spoken point. */
+.point-list { padding-left: 0; list-style: none; }
+.point-list li { margin-bottom: .6rem; overflow-wrap: anywhere; }
+.point-tag { display: inline-block; margin-right: .5rem; padding: .1rem .5rem; border-radius: 999px; color: var(--teal); background: var(--mint); font-size: .75rem; font-weight: 700; text-transform: capitalize; }
+
+/* Notes table and spoken points: a correction is shaded; its text still says what changed. */
+.note-correction { background: #fff1cc; }
+
+/* Tutor: the latest answer, the steps it used, the "not covered" tag, and the earlier questions. */
+.tutor-question { margin-bottom: .4rem; color: #c1d1cc; font-size: .85rem; overflow-wrap: anywhere; }
+.tutor-answer { margin-bottom: .5rem; white-space: pre-line; overflow-wrap: anywhere; }
+.tutor-steps { margin: 0; color: #9ed7ba; font-size: .85rem; }
+.tutor-tag { display: inline-block; padding: .15rem .55rem; border-radius: 999px; color: var(--ink); background: var(--orange); font-size: .75rem; font-weight: 700; }
+.tutor-note { color: #c1d1cc; font-size: .85rem; }
+.tutor-history-heading { margin-top: 1.5rem; font-size: 1rem; }
+.tutor-history { padding-left: 0; list-style: none; }
+.tutor-history li { padding: .6rem 0; border-top: 1px solid #5e746d; font-size: .85rem; }
+.tutor-history summary { cursor: pointer; overflow-wrap: anywhere; }
+.tutor-history details p { margin: .5rem 0 0; }
+
+/* Phones: equal-width tabs and full-width action buttons that are easy to tap. */
+@media (max-width: 767px) {
+  .workspace-tabs button { flex: 1 1 0; }
+  .material-actions .btn { width: 100%; }
+  .session-card-actions { padding-left: 0; }
 }

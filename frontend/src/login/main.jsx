@@ -1,75 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
+// Sign In page (/login/): the Project 1 layout with one "Sign in with Google" button (issue #27).
+// After sign-in it opens /app/; a user who is already signed in gets a link to their sessions.
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import '../../css/site.css';
 import SiteNav from '../SiteNav.jsx';
+import StatusMessage from '../components/StatusMessage.jsx';
+import { describeAuthError, signInWithGoogle, useAuth } from '../hooks/useAuth.js';
+import { trackEvent } from '../services/analytics.js';
+import { logClientEvent } from '../services/clientLogger.js';
 
-function LoginForm({ credentials, setCredentials, onCreateAccount, accountNotice, headingRef }) {
-  const [message, setMessage] = useState('');
-  const update = (key, value) => {
-    setCredentials((previous) => ({ ...previous, [key]: value }));
-    setMessage('');
-  };
+// Nothing to report yet.
+const idleStatus = { kind: 'idle', text: '' };
 
-  return (
-    <form className="auth-form" autoComplete="off" onSubmit={(event) => {
-      event.preventDefault();
-      setMessage('Sign-in preview only. No authentication was performed.');
-    }}>
-      <p className="eyebrow">SIGN IN PREVIEW</p>
-      <h1 ref={headingRef} tabIndex={-1}>Sign in to your board.</h1>
-      <p className="auth-copy">Continue building understanding, one session at a time.</p>
-      <label htmlFor="login">Login</label>
-      <input id="login" className="form-control" value={credentials.login} onChange={(event) => update('login', event.target.value)} required placeholder="Sample login" />
-      <label htmlFor="password">Password</label>
-      <input id="password" type="password" className="form-control" value={credentials.password} onChange={(event) => update('password', event.target.value)} required placeholder="Sample password" />
-      <button className="btn btn-primary w-100 mt-4" type="submit">Preview sign in</button>
-      <button className="create-account-button" type="button" onClick={onCreateAccount}>Create an account</button>
-      <p className="form-status" role="status" aria-live="polite">{message || accountNotice}</p>
-    </form>
-  );
-}
+// True once app_loaded has been logged, so it is logged once per page load.
+let appLoadedLogged = false;
 
-function CreateAccountForm({ setCredentials, onComplete, headingRef }) {
-  const [details, setDetails] = useState({ name: '', email: '', login: '', password: '' });
-  const update = (key, value) => setDetails((previous) => ({ ...previous, [key]: value }));
-
-  return (
-    <form className="auth-form account-form" autoComplete="off" onSubmit={(event) => {
-      event.preventDefault();
-      setCredentials({ login: details.login, password: details.password });
-      onComplete(true);
-    }}>
-      <p className="eyebrow">ACCOUNT PREVIEW</p>
-      <h1 className="account-title" ref={headingRef} tabIndex={-1}>Create your account.</h1>
-      <p className="auth-copy">Try the layout with sample details. Submitting does not create an account.</p>
-      {[
-        ['name', 'Name', 'Sample name'],
-        ['email', 'Email', 'sample@example.com'],
-        ['login', 'Login', 'Sample login'],
-        ['password', 'Password', 'Sample password']
-      ].map(([key, label, placeholder]) => (
-        <React.Fragment key={key}>
-          <label htmlFor={`account-${key}`}>{label}</label>
-          <input id={`account-${key}`} className="form-control" type={key === 'password' ? 'password' : key === 'email' ? 'email' : 'text'} required placeholder={placeholder} value={details[key]} onChange={(event) => update(key, event.target.value)} />
-        </React.Fragment>
-      ))}
-      <button className="btn btn-primary w-100 mt-4" type="submit">Preview account details</button>
-      <button className="create-account-button" type="button" onClick={() => onComplete(false)}>Back to sign in</button>
-    </form>
-  );
-}
-
+/**
+ * The whole Sign In page.
+ * @returns {JSX.Element}
+ */
 function LoginApp() {
-  const [showAccount, setShowAccount] = useState(false);
-  const [credentials, setCredentials] = useState({ login: '', password: '' });
-  const [accountNotice, setAccountNotice] = useState('');
-  const headingRef = useRef(null);
-  const mounted = useRef(false);
+  const { user, loading } = useAuth();
+  const [status, setStatus] = useState(idleStatus);
 
+  // One INFO line in Cloud Logging per page load, once the user is known.
   useEffect(() => {
-    if (mounted.current) headingRef.current?.focus();
-    mounted.current = true;
-  }, [showAccount]);
+    if (user && !appLoadedLogged) {
+      appLoadedLogged = true;
+      logClientEvent('INFO', 'app_loaded', { page: 'login' });
+    }
+  }, [user]);
+
+  /**
+   * Runs the Google popup, then opens the app.
+   * @returns {Promise<void>}
+   */
+  async function handleSignIn() {
+    setStatus({ kind: 'working', text: 'Waiting for Google sign-in...' });
+    try {
+      // The popup must open inside this click, so this is the first await in the handler.
+      await signInWithGoogle();
+      window.location.assign('/app/');
+    } catch (error) {
+      logClientEvent('WARNING', 'sign_in_failed', { code: error.code || 'unknown' });
+      trackEvent('error_shown', { operation: 'sign_in' });
+      setStatus({ kind: 'error', text: describeAuthError(error), onRetry: handleSignIn });
+    }
+  }
 
   return (
     <>
@@ -81,20 +57,23 @@ function LoginApp() {
             <div className="auth-scribble">learn<br />what<br />matters</div>
             <p className="auth-caption">A glimpse from a student's class notes.</p>
           </div>
-          <div className="auth-card auth-preview-card">
-            <p className="workspace-demo-notice">Preview only. Google sign-in is not connected yet. These forms do not authenticate users or create accounts; use sample values only.</p>
-            {showAccount ? (
-              <CreateAccountForm setCredentials={setCredentials} headingRef={headingRef} onComplete={(submitted) => {
-                setAccountNotice(submitted ? 'Account preview complete. Sample login fields were copied; no account was created.' : '');
-                setShowAccount(false);
-              }} />
-            ) : (
-              <LoginForm credentials={credentials} setCredentials={setCredentials} accountNotice={accountNotice} headingRef={headingRef} onCreateAccount={() => {
-                setAccountNotice('');
-                setShowAccount(true);
-              }} />
-            )}
-            <a className="auth-preview-link" href="/app/">Open app preview →</a>
+          <div className="auth-card">
+            <div className="auth-form">
+              <p className="eyebrow">WELCOME BACK</p>
+              <h1>Sign in to your board.</h1>
+              <p className="auth-copy">Continue building understanding, one session at a time.</p>
+              {user ? (
+                <>
+                  <p>You are already signed in.</p>
+                  <a className="btn btn-primary w-100 mt-4" href="/app/">Go to your sessions</a>
+                </>
+              ) : (
+                <button className="btn btn-primary w-100 mt-4" type="button" onClick={handleSignIn} disabled={loading || status.kind === 'working'}>
+                  Sign in with Google
+                </button>
+              )}
+              <StatusMessage status={status} />
+            </div>
           </div>
         </div>
       </main>
@@ -102,4 +81,9 @@ function LoginApp() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<LoginApp />);
+// Mount the page into the empty #root div of login/index.html. StrictMode adds extra checks during npm run dev.
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <LoginApp />
+  </StrictMode>
+);

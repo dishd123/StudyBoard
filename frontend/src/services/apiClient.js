@@ -1,240 +1,211 @@
-const messages = {
-  400: ['INVALID_REQUEST', 'Check the request and try again.'],
-  401: ['UNAUTHENTICATED', 'Sign in again to continue.'],
-  403: ['FORBIDDEN', 'You do not have access to this material.'],
-  404: ['NOT_FOUND', 'This session or item could not be found.'],
-  408: ['REQUEST_TIMEOUT', 'The request timed out. Try again.'],
-  409: ['CONFLICT', 'Finish the required step before trying again. If importing a photo, finish picking in the Google Photos tab first.'],
-  422: ['VALIDATION_ERROR', 'Some information is missing or invalid. Check it and try again.'],
-  429: ['RATE_LIMITED', 'Too many requests. Wait a moment before trying again.']
-};
+// The one place the browser calls the StudyBoard API (issue #4).
+// Produces `api`, one method per route in the API contract, and ApiError for failed calls.
+import { auth } from './firebase.js';
+import { getAnalyticsClientId } from './analytics.js';
+import { logClientEvent } from './clientLogger.js';
 
-/** A safe, consistent error for StatusMessage, auth handling, and diagnostics. */
+// clientLogger.js also imports this file. That is safe: each file only uses the other inside
+// functions, which run after both files have loaded.
+
+// Shown when the server sends no message of its own.
+const fallbackMessage = 'Something went wrong. Try again.';
+
+/**
+ * An API call that failed. The message is safe to show to the user.
+ */
 export class ApiError extends Error {
-  constructor(message, { code, status = 0, requestId, retryable = false }) {
+  /**
+   * @param {number} status - HTTP status code, or 0 when the server could not be reached
+   * @param {string} message - message for the user
+   */
+  constructor(status, message) {
     super(message);
     this.name = 'ApiError';
-    this.code = code;
     this.status = status;
-    this.requestId = requestId;
-    this.retryable = retryable;
   }
-}
-
-function invalidRequest(requestId) {
-  return new ApiError('Use a same-origin /api path and valid request options.', {
-    code: 'INVALID_REQUEST', status: 400, requestId
-  });
-}
-
-function normalizePath(path, requestId) {
-  // A fixed parsing origin also allows importing this module in Node smoke checks.
-  // Only the relative result is fetched; no configurable external base URL exists.
-  if (typeof path !== 'string' || !/^\/api(?:[/?]|$)/.test(path) || /[\\#\s]/.test(path)) {
-    throw invalidRequest(requestId);
-  }
-  const origin = 'https://studyboard.invalid';
-  let url;
-  try {
-    url = new URL(path, origin);
-  } catch {
-    throw invalidRequest(requestId);
-  }
-  if (url.origin !== origin || !/^\/api(?:\/|$)/.test(url.pathname)) {
-    throw invalidRequest(requestId);
-  }
-  // Reject encoded path separators/dot traversal before evaluating token scope.
-  let decoded;
-  try {
-    decoded = decodeURIComponent(url.pathname);
-  } catch {
-    throw invalidRequest(requestId);
-  }
-  if (decoded.includes('\\') || decoded.split('/').some((part) => part === '.' || part === '..') || /%2f|%5c/i.test(url.pathname)) {
-    throw invalidRequest(requestId);
-  }
-  return { path: url.pathname + url.search, pathname: url.pathname };
-}
-
-function httpError(status, requestId) {
-  const [code, message] = messages[status] ?? (status >= 500
-    ? ['SERVER_ERROR', 'The service could not complete the request. Try again.']
-    : ['HTTP_ERROR', 'The request could not be completed.']);
-  return new ApiError(message, {
-    code, status, requestId,
-    retryable: [408, 409, 429].includes(status) || status >= 500
-  });
-}
-
-// Classify routes to fixed labels only. Paths, query values and IDs are never
-// passed to diagnostics. Unknown/new routes keep a bounded fallback label.
-function diagnosticOperation(path, options) {
-  if (typeof path !== 'string') return 'unknown';
-  const pathname = path.split(/[?#]/, 1)[0].replace(/\/$/, '');
-  const method = typeof options?.method === 'string' ? options.method.toUpperCase() : 'GET';
-  if (pathname === '/api/agent-check' && ['GET', 'POST'].includes(method)) return 'agent_check';
-  if (pathname === '/api/sessions') return { GET: 'session_list', POST: 'session_create' }[method] ?? 'unknown';
-  if (/^\/api\/sessions\/[^/]+$/.test(pathname)) {
-    return { GET: 'session_read', PATCH: 'session_rename', DELETE: 'session_delete' }[method] ?? 'unknown';
-  }
-  if (/^\/api\/sessions\/[^/]+\/cards\/[^/]+$/.test(pathname)) {
-    return { PATCH: 'card_update', DELETE: 'card_delete' }[method] ?? 'unknown';
-  }
-  if (/^\/api\/sessions\/[^/]+\/cards$/.test(pathname) && method === 'GET') return 'cards_list';
-  if (/^\/api\/sessions\/[^/]+\/questions$/.test(pathname)) {
-    return { GET: 'question_history', POST: 'tutor_question' }[method] ?? 'unknown';
-  }
-  if (method !== 'POST') return 'unknown';
-  const action = pathname.match(/^\/api\/sessions\/[^/]+\/(picker|photo|audio|build)$/)?.[1];
-  return { picker: 'photos_picker', photo: 'photo_import', audio: 'audio_submit', build: 'study_build' }[action] ?? 'unknown';
-}
-
-function diagnosticTime() {
-  try { return globalThis.performance?.now() ?? Date.now(); }
-  catch { return null; }
 }
 
 /**
- * Create the shared client at the auth boundary once Firebase is connected.
- * getIdToken is awaited on every request; the client never caches tokens.
- * fetchImpl and createRequestId may be injected for offline/mock verification.
- * diagnostics may be a createClientLogger() instance; omitted means no logging.
- *
- * request/get/post/patch/delete accept an /api path and an options object:
- * { json?, body?, headers?, photosToken?, signal? }. Use json for JSON payloads,
- * body for FormData/Blob uploads, and signal for caller-controlled cancellation.
+ * Builds an ApiError and logs it, except for sendClientLog itself (a failed log must not log again).
+ * @param {string} operation - api method name, for example "getSession"
+ * @param {number} status - HTTP status code, or 0
+ * @param {string} message - message for the user
+ * @returns {ApiError} the error for the caller to throw
  */
-export function createApiClient({
-  getIdToken = async () => null,
-  fetchImpl = (...args) => globalThis.fetch(...args),
-  createRequestId = () => globalThis.crypto.randomUUID(),
-  diagnostics = null
-} = {}) {
-  async function performRequest(path, options = {}) {
-    const requestId = createRequestId();
-    const target = normalizePath(path, requestId);
-    if (!options || typeof options !== 'object' || Array.isArray(options) ||
-        (options.method !== undefined && typeof options.method !== 'string')) {
-      throw invalidRequest(requestId);
-    }
-    const method = (options.method ?? 'GET').toUpperCase();
-    const hasJson = Object.hasOwn(options, 'json');
-    const hasBody = options.body !== undefined;
-    if (!['GET', 'POST', 'PATCH', 'DELETE'].includes(method) ||
-        (hasJson && hasBody) || (method === 'GET' && (hasJson || hasBody))) {
-      throw invalidRequest(requestId);
-    }
-
-    let headers;
-    let body = options.body;
-    try {
-      headers = new Headers(options.headers);
-      if (['Authorization', 'X-Photos-Token', 'X-Request-ID'].some((name) => headers.has(name))) {
-        throw invalidRequest(requestId);
-      }
-      headers.set('Accept', 'application/json');
-      headers.set('X-Request-ID', requestId);
-      if (hasJson) {
-        body = JSON.stringify(options.json);
-        if (body === undefined) throw invalidRequest(requestId);
-        headers.set('Content-Type', 'application/json');
-      } else if (typeof FormData !== 'undefined' && body instanceof FormData) {
-        // The browser must supply the multipart boundary, even if a caller set it.
-        headers.delete('Content-Type');
-      }
-
-      if (options.photosToken !== undefined) {
-        const isPhotoImport = method === 'POST' && /^\/api\/sessions\/[^/]+\/(picker|photo)\/?$/.test(target.pathname);
-        if (!isPhotoImport || typeof options.photosToken !== 'string' || !options.photosToken || /\s/.test(options.photosToken)) {
-          throw invalidRequest(requestId);
-        }
-        headers.set('X-Photos-Token', options.photosToken);
-      }
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      throw invalidRequest(requestId);
-    }
-
-    if (options.signal?.aborted) {
-      throw new ApiError('The request was cancelled.', { code: 'ABORTED', requestId });
-    }
-
-    let token;
-    try {
-      token = await getIdToken();
-    } catch {
-      if (options.signal?.aborted) {
-        throw new ApiError('The request was cancelled.', { code: 'ABORTED', requestId });
-      }
-      throw new ApiError('Sign in again to continue.', {
-        code: 'AUTH_TOKEN_ERROR', status: 401, requestId
-      });
-    }
-    if (options.signal?.aborted) {
-      throw new ApiError('The request was cancelled.', { code: 'ABORTED', requestId });
-    }
-    if (typeof token !== 'string' || !token || /\s/.test(token)) {
-      throw httpError(401, requestId);
-    }
-    try {
-      headers.set('Authorization', `Bearer ${token}`);
-    } catch {
-      throw new ApiError('Sign in again to continue.', {
-        code: 'AUTH_TOKEN_ERROR', status: 401, requestId
-      });
-    }
-
-    let responseId = requestId;
-    try {
-      const response = await fetchImpl(target.path, {
-        method, headers, body, signal: options.signal,
-        credentials: 'same-origin', mode: 'same-origin', redirect: 'error'
-      });
-      responseId = response.headers.get('X-Request-ID') || requestId;
-      if (!response.ok) throw httpError(response.status, responseId);
-      if (response.status === 204 || response.status === 205) return null;
-      const text = await response.text();
-      if (!text.trim()) return null;
-      try {
-        return JSON.parse(text);
-      } catch {
-        throw new ApiError('The service returned an unreadable response.', {
-          code: 'INVALID_RESPONSE', status: response.status, requestId: responseId
-        });
-      }
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      if (options.signal?.aborted || error?.name === 'AbortError') {
-        throw new ApiError('The request was cancelled.', { code: 'ABORTED', requestId: responseId });
-      }
-      throw new ApiError('Could not reach the service. Check your connection and try again.', {
-        code: 'NETWORK_ERROR', requestId: responseId, retryable: true
-      });
-    }
+function apiFailure(operation, status, message) {
+  if (operation !== 'sendClientLog') {
+    logClientEvent('ERROR', 'api_error', { operation, status });
   }
-
-  async function request(path, options = {}) {
-    const startedAt = diagnostics ? diagnosticTime() : null;
-    try {
-      return await performRequest(path, options);
-    } catch (error) {
-      try {
-        if (typeof diagnostics?.apiFailure === 'function') {
-          const finishedAt = diagnosticTime();
-          const durationMs = startedAt !== null && finishedAt !== null ? finishedAt - startedAt : null;
-          const pending = diagnostics.apiFailure(diagnosticOperation(path, options), error, { durationMs });
-          if (pending && typeof pending.then === 'function') Promise.resolve(pending).catch(() => {});
-        }
-      } catch { /* A broken diagnostic sink does not alter the original failure. */ }
-      throw error;
-    }
-  }
-
-  return Object.freeze({
-    request,
-    get: (path, options) => request(path, { ...options, method: 'GET' }),
-    post: (path, options) => request(path, { ...options, method: 'POST' }),
-    patch: (path, options) => request(path, { ...options, method: 'PATCH' }),
-    delete: (path, options) => request(path, { ...options, method: 'DELETE' })
-  });
+  return new ApiError(status, message);
 }
+
+/**
+ * Reads a JSON response body.
+ * @param {Response} response - the fetch response
+ * @returns {Promise<object|null>} the parsed body, or null when it is empty or not JSON (for example a proxy error page)
+ */
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Sends one request to the API as the signed-in user.
+ * @param {string} operation - api method name, used in the error log
+ * @param {string} method - HTTP method
+ * @param {string} path - path that starts with /api/
+ * @param {{ json?: object, body?: Blob, headers?: object }} [options] - a JSON body, a raw body, or extra headers
+ * @returns {Promise<object>} the parsed JSON response body
+ * @throws {ApiError} when nobody is signed in, the server cannot be reached, or the status is not 2xx
+ */
+async function request(operation, method, path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw apiFailure(operation, 401, 'Please sign in again.');
+  }
+  let idToken;
+  try {
+    // Firebase returns a cached ID token and refreshes it shortly before its 1-hour expiry.
+    idToken = await user.getIdToken();
+  } catch {
+    throw apiFailure(operation, 401, 'Please sign in again.');
+  }
+  // The backend verifies this token on every route except /api/health.
+  const headers = { ...options.headers, Authorization: `Bearer ${idToken}` };
+  // Lets the backend send its Analytics events into this browser's GA session.
+  const gaClientId = await getAnalyticsClientId();
+  if (gaClientId) {
+    headers['X-GA-Client-Id'] = gaClientId;
+  }
+  let body = options.body;
+  if (options.json !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(options.json);
+  }
+  let response;
+  try {
+    response = await fetch(path, { method, headers, body });
+  } catch {
+    // fetch rejects only when no response came back at all (offline, DNS, server down).
+    throw apiFailure(operation, 0, 'We could not reach StudyBoard. Check your connection and try again.');
+  }
+  const data = await readJson(response);
+  // A 2xx reply with no JSON also fails, for example a proxy's error page; every route answers with JSON.
+  if (!response.ok || data === null) {
+    let message = fallbackMessage;
+    if (data && typeof data.error === 'string') {
+      message = data.error;
+    }
+    throw apiFailure(operation, response.status, message);
+  }
+  return data;
+}
+
+/**
+ * Builds the path of one session. encodeURIComponent stops an id such as "a/b" from changing the path.
+ * @param {string} sid - session id
+ * @returns {string} for example "/api/sessions/abc123"
+ */
+function sessionPath(sid) {
+  return `/api/sessions/${encodeURIComponent(sid)}`;
+}
+
+/**
+ * The StudyBoard API. Every method returns the JSON body that the API contract lists for its route,
+ * and throws ApiError when the call fails.
+ */
+export const api = {
+  /** GET /api/sessions -> { sessions }, newest first. course '' or undefined lists every course. */
+  listSessions(course) {
+    let query = '';
+    if (course) {
+      query = `?course=${encodeURIComponent(course)}`;
+    }
+    return request('listSessions', 'GET', `/api/sessions${query}`);
+  },
+
+  /** POST /api/sessions -> { session }. title 1-80 characters; a blank course becomes "General". */
+  createSession({ title, course }) {
+    return request('createSession', 'POST', '/api/sessions', { json: { title, course } });
+  },
+
+  /** GET /api/sessions/:sid -> { session, cards } */
+  getSession(sid) {
+    return request('getSession', 'GET', sessionPath(sid));
+  },
+
+  /** PATCH /api/sessions/:sid -> { session }. fields holds title and/or course. */
+  updateSession(sid, fields) {
+    return request('updateSession', 'PATCH', sessionPath(sid), { json: fields });
+  },
+
+  /** DELETE /api/sessions/:sid -> { ok: true }. Also deletes its cards and questions. */
+  deleteSession(sid) {
+    return request('deleteSession', 'DELETE', sessionPath(sid));
+  },
+
+  /** GET /api/sessions/:sid/cards -> { cards }. unknownOnly true asks only for cards not marked known. */
+  listCards(sid, unknownOnly) {
+    let query = '';
+    if (unknownOnly) {
+      query = '?known=false';
+    }
+    return request('listCards', 'GET', `${sessionPath(sid)}/cards${query}`);
+  },
+
+  /** PATCH /api/sessions/:sid/cards/:cid -> { card }. known is true for "Got it", false for "Still learning". */
+  updateCard(sid, cid, known) {
+    return request('updateCard', 'PATCH', `${sessionPath(sid)}/cards/${encodeURIComponent(cid)}`, { json: { known } });
+  },
+
+  /** DELETE /api/sessions/:sid/cards/:cid -> { ok: true } */
+  deleteCard(sid, cid) {
+    return request('deleteCard', 'DELETE', `${sessionPath(sid)}/cards/${encodeURIComponent(cid)}`);
+  },
+
+  /** POST /api/sessions/:sid/picker -> { pickerUri }. The Google Photos token travels only in this header. */
+  startPicker(sid, photosToken) {
+    return request('startPicker', 'POST', `${sessionPath(sid)}/picker`, { headers: { 'X-Photos-Token': photosToken } });
+  },
+
+  /** POST /api/sessions/:sid/photo -> { session }. Reads the photo picked in Google Photos. */
+  importPhoto(sid, photosToken) {
+    return request('importPhoto', 'POST', `${sessionPath(sid)}/photo`, { headers: { 'X-Photos-Token': photosToken } });
+  },
+
+  /** POST /api/sessions/:sid/audio -> { session }. blob is the raw recording (at most 10 MB); durationSeconds is whole seconds, 0-180. */
+  uploadRecording(sid, blob, durationSeconds) {
+    return request('uploadRecording', 'POST', `${sessionPath(sid)}/audio?durationSeconds=${durationSeconds}`, {
+      body: blob,
+      headers: { 'Content-Type': blob.type }
+    });
+  },
+
+  /** POST /api/sessions/:sid/build -> { session, cards }. Runs the notes and flashcards agents. */
+  buildStudySet(sid) {
+    return request('buildStudySet', 'POST', `${sessionPath(sid)}/build`);
+  },
+
+  /** POST /api/sessions/:sid/questions -> { question }. question 1-500 characters. */
+  askTutor(sid, question) {
+    return request('askTutor', 'POST', `${sessionPath(sid)}/questions`, { json: { question } });
+  },
+
+  /** GET /api/sessions/:sid/questions -> { questions }, the last 20, newest first. */
+  listQuestions(sid) {
+    return request('listQuestions', 'GET', `${sessionPath(sid)}/questions`);
+  },
+
+  /** GET /api/agent-check -> { value, answer, toolCalled }. The ADK smoke check; value 1-40 characters. */
+  agentCheck(value) {
+    return request('agentCheck', 'GET', `/api/agent-check?value=${encodeURIComponent(value)}`);
+  },
+
+  /** POST /api/client-logs -> { ok: true }. entry is { level, event, details }. */
+  sendClientLog(entry) {
+    return request('sendClientLog', 'POST', '/api/client-logs', { json: entry });
+  }
+};

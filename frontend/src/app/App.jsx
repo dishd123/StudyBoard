@@ -1,162 +1,102 @@
-import React, { useState } from 'react';
+// App: the /app/ single-page app (issue #160).
+// Shows a loading line, the signed-out panel, the Dashboard, or one session, chosen by sign-in state and the URL hash.
+import { useEffect, useState } from 'react';
 import SiteNav from '../SiteNav.jsx';
 import Dashboard from '../pages/Dashboard.jsx';
 import SessionWorkspace from '../pages/SessionWorkspace.jsx';
-import { createWorkspaceFixture, fixtureNames } from '../fixtures/workspaces.js';
-import { createSession } from '../models/session.js';
-import { createNotesPreview } from '../fixtures/notesPreview.js';
+import StatusMessage from '../components/StatusMessage.jsx';
+import { useAuth } from '../hooks/useAuth.js';
+import { logClientEvent } from '../services/clientLogger.js';
 
-// Development-only scenario URLs exercise fixtures without adding product controls.
-const requestedFixture = import.meta.env.DEV
-  ? new URLSearchParams(window.location.search).get('fixture')
-  : 'ready';
-const fixtureName = fixtureNames.includes(requestedFixture) ? requestedFixture : 'ready';
-const idleOperation = { status: 'idle', name: null };
+// True once app_loaded has been logged, so it is logged once per page load.
+let appLoadedLogged = false;
 
+/**
+ * Reads the open session id from a hash such as #session=abc123.
+ * @returns {string|null} the session id, or null when the hash names no valid id
+ */
+function readSessionId() {
+  // Same id rule as the backend: 1-64 letters, digits, "_" or "-".
+  const match = window.location.hash.match(/^#session=([A-Za-z0-9_-]{1,64})$/);
+  if (match) {
+    return match[1];
+  }
+  return null;
+}
+
+/**
+ * The /app/ page.
+ * @returns {JSX.Element}
+ */
 export default function App() {
-  const [workspace, setWorkspace] = useState(() => {
-    const initial = createWorkspaceFixture(fixtureName);
-    return import.meta.env.DEV
-      ? createNotesPreview(initial, new URLSearchParams(window.location.search).get('notesPreview'))
-      : initial;
-  });
-  const [selectedSessionId, setSelectedSessionId] = useState(workspace.sessions[0]?.id ?? null);
-  const [sessionOpen, setSessionOpen] = useState(false);
-  const [courseFilter, setCourseFilter] = useState('');
-  // Fixture processing belongs to the initial session, not any new selection.
-  const [processingSessionId] = useState(() => workspace.operation.status === 'processing'
-    ? workspace.sessions[0]?.id : null);
-  const sessions = [...workspace.sessions].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const visibleSessions = sessions.filter((item) => !courseFilter || item.course === courseFilter);
-  const session = visibleSessions.find((item) => item.id === selectedSessionId) ?? visibleSessions[0] ?? null;
-  const cards = workspace.cardsBySession[session?.id] ?? [];
-  const questions = workspace.questionsBySession[session?.id] ?? [];
+  const { user, loading } = useAuth();
+  const [sessionId, setSessionId] = useState(readSessionId);
 
-  function markCardKnown(id, cardId, known) {
-    setWorkspace((current) => {
-      const existing = current.cardsBySession[id];
-      if (typeof known !== 'boolean' || !existing?.some((card) => card.id === cardId)) return current;
-      return {
-        ...current,
-        cardsBySession: { ...current.cardsBySession, [id]: existing.map((card) => card.id === cardId ? { ...card, known } : card) }
-      };
-    });
+  // The open session lives in the URL hash, so refresh and the Back button keep it.
+  useEffect(() => {
+    function handleHashChange() {
+      setSessionId(readSessionId());
+    }
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // One INFO line in Cloud Logging per page load, once the user is known.
+  useEffect(() => {
+    if (user && !appLoadedLogged) {
+      appLoadedLogged = true;
+      logClientEvent('INFO', 'app_loaded', { page: 'app' });
+    }
+  }, [user]);
+
+  /**
+   * Opens a session; the hashchange listener then shows it.
+   * @param {string} id - session id
+   */
+  function openSession(id) {
+    window.location.hash = `session=${id}`;
   }
 
-  function deleteCard(id, cardId) {
-    setWorkspace((current) => {
-      const existing = current.cardsBySession[id];
-      if (!existing?.some((card) => card.id === cardId)) return current;
-      const remaining = existing.filter((card) => card.id !== cardId);
-      return {
-        ...current,
-        sessions: current.sessions.map((item) => item.id === id ? { ...item, cardCount: remaining.length, updatedAt: new Date().toISOString() } : item),
-        cardsBySession: { ...current.cardsBySession, [id]: remaining }
-      };
-    });
+  /** Goes back to the Dashboard by clearing the hash. */
+  function closeSession() {
+    window.location.hash = '';
   }
 
-  function changeCourseFilter(course) {
-    setCourseFilter(course);
-    setSelectedSessionId(null);
-  }
-
-  function addSession({ title, course }) {
-    const newSession = createSession({
-      id: crypto.randomUUID(), title: title.trim(), course: course.trim(),
-      createdAt: new Date().toISOString()
-    });
-    setWorkspace((current) => ({
-      ...current,
-      sessions: [newSession, ...current.sessions],
-      cardsBySession: { ...current.cardsBySession, [newSession.id]: [] },
-      questionsBySession: { ...current.questionsBySession, [newSession.id]: [] }
-    }));
-    setCourseFilter('');
-    setSelectedSessionId(newSession.id);
-  }
-
-  function renameSession(id, title) {
-    setWorkspace((current) => ({
-      ...current,
-      sessions: current.sessions.map((item) => item.id === id
-        ? { ...item, title: title.trim(), updatedAt: new Date().toISOString() } : item)
-    }));
-  }
-
-  function deleteSession(id) {
-    const remaining = workspace.sessions.filter((item) => item.id !== id);
-    setWorkspace((current) => ({
-      ...current,
-      sessions: current.sessions.filter((item) => item.id !== id),
-      cardsBySession: Object.fromEntries(Object.entries(current.cardsBySession).filter(([key]) => key !== id)),
-      questionsBySession: Object.fromEntries(Object.entries(current.questionsBySession).filter(([key]) => key !== id))
-    }));
-    if (courseFilter && !remaining.some((item) => item.course === courseFilter)) setCourseFilter('');
-    setSelectedSessionId(null);
-    setSessionOpen(false);
-  }
-
-  function updateMaterial(id, field, value) {
-    // Only committed input changes invalidate derived output; cancelled selection does not.
-    setWorkspace((current) => {
-      if (!current.sessions.some((item) => item.id === id)) return current;
-      return {
-        ...current,
-        operation: id === processingSessionId ? idleOperation : current.operation,
-        sessions: current.sessions.map((item) => item.id === id ? {
-          ...item, [field]: value, status: 'draft', errorMessage: null,
-          summary: '', notes: [], cardCount: 0, updatedAt: new Date().toISOString()
-        } : item),
-        cardsBySession: { ...current.cardsBySession, [id]: [] }
-      };
-    });
-  }
-
-  function rebuildPreview(id) {
-    const target = workspace.sessions.find((item) => item.id === id);
-    if (!target?.photo || !target.audio) throw new Error('Missing preview material');
-    // No notes/cards are generated and no stored processing status is changed.
-    return { sessionId: id, preview: true };
+  let content;
+  if (loading) {
+    content = (
+      <main className="app-shell">
+        <div className="container">
+          <StatusMessage status={{ kind: 'working', text: 'Checking your sign-in...' }} />
+        </div>
+      </main>
+    );
+  } else if (!user) {
+    content = (
+      <main className="app-shell">
+        <div className="container">
+          <div className="app-welcome">
+            <div>
+              <p className="eyebrow">YOUR STUDY WORKSPACE</p>
+              <h1>Sign in to see your sessions.</h1>
+              <p className="lead">StudyBoard keeps your boards, notes and flashcards under your Google account.</p>
+              <a className="btn btn-primary" href="/login/">Sign in</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  } else if (sessionId) {
+    // key makes React start a fresh workspace (new state) whenever the session id changes.
+    content = <SessionWorkspace key={sessionId} sessionId={sessionId} onBack={closeSession} />;
+  } else {
+    content = <Dashboard user={user} onOpenSession={openSession} />;
   }
 
   return (
     <>
       <SiteNav active="/app/" />
-      {sessionOpen && session ? (
-        <SessionWorkspace
-          key={session.id}
-          session={session}
-          cards={cards}
-          questions={questions}
-          onMarkKnown={(cardId, known) => markCardKnown(session.id, cardId, known)}
-          onDeleteCard={(cardId) => deleteCard(session.id, cardId)}
-          operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
-          onPhotoChange={(photo) => updateMaterial(session.id, 'photo', photo)}
-          onAudioChange={(audio) => updateMaterial(session.id, 'audio', audio)}
-          onMockRebuild={() => rebuildPreview(session.id)}
-          onBack={() => setSessionOpen(false)}
-        />
-      ) : (
-        <Dashboard
-          sessions={visibleSessions}
-          allSessions={sessions}
-          session={session}
-          cards={cards}
-          questions={questions}
-          onMarkKnown={(cardId, known) => markCardKnown(session.id, cardId, known)}
-          onDeleteCard={(cardId) => deleteCard(session.id, cardId)}
-          operation={session?.id === processingSessionId ? workspace.operation : idleOperation}
-          processingSessionId={workspace.operation.status === 'processing' ? processingSessionId : null}
-          courseFilter={courseFilter}
-          onFilterChange={changeCourseFilter}
-          onCreate={addSession}
-          onRename={renameSession}
-          onDelete={deleteSession}
-          onSelect={setSelectedSessionId}
-          onOpen={() => setSessionOpen(true)}
-        />
-      )}
+      {content}
     </>
   );
 }
