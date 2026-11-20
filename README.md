@@ -1,136 +1,93 @@
-# StudyBoard — CS651 Project 2
+# StudyBoard - CS651 Project 2
 
-StudyBoard extends the Project 1 site into a study workspace for one board photo
-and one runtime spoken explanation per session. The existing frontend is now in
-`frontend/`; the plain JavaScript backend modules are in `backend/`. The revised
-October 19 proposal targets one Express/Cloud Run service. Server integration
-and deployment are still separate issues; the current frontend uses fixtures
-with local microphone capture.
+StudyBoard turns one photo of a whiteboard or handwritten page, plus the student's spoken explanation of it, into paired study notes and flashcards. Its tutor answers only from the student's saved material.
 
-See [frontend layout and migration checks](docs/frontend-layout.md) for issue #15.
+- Live app: https://studyboard-389363739519.us-central1.run.app
+- Wiki (documentation): https://github.com/dishd123/StudyBoard/wiki
+- Course: CS651 Web Systems, CSU East Bay, Fall 2026, Group 4: Disha Deshmukh, Huda Joad, Venkatesh Katta, Ndeye Traore
 
-## Project 1 references
+## How it works
 
-The following links and deployment notes are retained from Project 1; they are
-not a claim that the Project 2 service is deployed.
+1. The user signs in with Google (Firebase Authentication).
+2. The user imports one photo from Google Photos (Photos Picker API). Gemini reads it into ordered steps, in a direct call with a JSON schema.
+3. The user records an explanation in the browser (up to 3 minutes). Gemini turns it into a transcript and tagged points (explanation, correction, emphasis), in a second direct call.
+4. A Google Agent Development Kit (ADK) pipeline, `studySetPipeline`, runs two agents in order. `notesAgent` pairs each written step with what was said and keeps a spoken correction next to the original value. `cardsAgent` then writes flashcards from those notes.
+5. `tutorAgent` answers typed questions. It calls the `getSessionNotes` tool, which reads only the signed-in user's session, and says when the material does not cover a question.
+6. Firestore stores everything under `users/{uid}/sessions/{sessionId}`, with `cards` and `questions` subcollections. The browser never reads Firestore directly.
 
-| Item | Value |
-| --- | --- |
-| Live site | http://studyboard.tech/ |
-| Backup address | http://23.21.105.57/ (the server's Elastic IP) |
-| Wiki | https://github.com/dishd123/CS651-Project-1-Part2/wiki |
-| YouTube video | https://youtu.be/u4GmtcjTVLQ |
-| Special Issues PDF | [docs/Special-Issues.pdf](docs/Special-Issues.pdf) |
-| Build and deploy steps | [DockerContainer/README.md](DockerContainer/README.md) |
+One Cloud Run service runs Express, which serves the Project 1 pages, the React app and the `/api` routes from the same origin.
 
-The server runs in an AWS Academy Learner Lab, which stops it whenever no lab session is open (sessions last 4 hours). If the site does not load, the lab is not running; the wiki and the video show it running at this address. The site is plain HTTP: type `http://` in front of the address, and if Chrome says the connection is not secure, choose Continue to site.
-
-## Group
-
-CS651 Web Systems, CSU East Bay, Fall 2026: Disha Deshmukh, Huda Joad, Venkatesh Katta, Ndeye Traore.
-
-## What is where
+## Folders
 
 | Path | What it holds |
 | --- | --- |
-| `DockerContainer/` | `Dockerfile`, `httpd.conf`, and the README with the build and deploy steps |
-| `frontend/index.html`, `frontend/about.html`, `frontend/contact.html` | The Home, About and Contact pages |
-| `frontend/app/`, `frontend/login/` | Retained App and Sign In HTML entry points |
-| `frontend/src/` | Existing React app, components, fixtures, models, services, and login |
-| `frontend/css/site.css`, `frontend/js/site.js` | Shared styles and static-page menu/footer/contact script |
-| `frontend/public/images/` | The existing page and sample-board images |
-| `frontend/tests/` | Phase 0 and recorder tests; [test instructions](frontend/tests/README.md) |
-| `frontend/package.json`, `frontend/package-lock.json` | Frontend dependencies and commands; its Vite/Vitest configs live beside them |
-| `backend/` | Backend agents, services, routes, tests, and its separate package/lockfile |
-| Root `package.json` | Frontend command delegates plus issue #13's `gcp-build`, Express entry command, and Node 22 runtime selection |
-| `docs/Special-Issues.pdf` | The answers to Special Issues 1 and 2 |
+| `frontend/` | The Project 1 pages (Home, About, Contact, Sign In), the Privacy page and the React app (`src/`), built with Vite |
+| `frontend/src/services/` | Firebase setup, the API client, Google Photos permission, analytics and frontend logging |
+| `frontend/src/pages/`, `frontend/src/components/` | The dashboard, the session workspace and its Material, Notes and Study tabs |
+| `backend/` | The Express server (`server.js`), with its own `package.json` |
+| `backend/middleware/` | Token verification, rate limits, error handling |
+| `backend/routes/` | `sessions.js`, `photos.js`, `audio.js`, `agents.js`, `clientLogs.js` |
+| `backend/services/` | Firestore (`sessionStore.js`), Google Photos, Gemini, the build and tutor services, logging and GA4 |
+| `backend/agents/` | The ADK agents and the `getSessionNotes` tool |
+| `backend/scripts/` | Command-line checks of the direct Gemini calls and the agents |
+| `backend/tests/` | Unit tests (`node --test`) |
+| `docs/` | Proposal, report and slides PDFs; Phase 0 design notes from earlier in the project |
+| `DockerContainer/` | Project 1 Part 2 only (Docker on AWS), kept as history; Project 2 does not use it |
 
 ## Run it locally
 
-From the repository root, install the frontend package and start Vite:
+You need Node 24 and the Google Cloud CLI, signed in with `gcloud auth application-default login`. From the repository root:
 
 ```bash
-npm ci --prefix frontend
-npm run dev
+npm install --prefix backend
+npm install --prefix frontend
+cp backend/.env.example backend/.env
 ```
 
-Use Vite's printed address (normally `http://localhost:5173`) and the existing
-`/`, `/about.html`, `/contact.html`, `/app/`, and `/login/` routes.
+Fill in the values in `backend/.env`. Then run `npm run dev:backend` in one terminal (Express on http://127.0.0.1:8080) and `npm run dev:frontend` in a second terminal, and open the address Vite prints.
 
-```bash
-npm run test:frontend
-npm run build
-npm run preview
-```
+`backend/.env.example` names every setting with a placeholder value. Git ignores `backend/.env`, so your key stays on your computer.
 
-The build is written to `frontend/dist/`. Root commands delegate to the frontend
-package and forward arguments, such as `npm run dev -- --port 5174`. Running the
-same commands inside `frontend/` also works. Root `npm ci` alone does not install
-the child packages; use the explicit frontend installation command above.
+## Scripts
 
-Backend development uses its own package, for example `npm ci --prefix backend`
-and `npm test --prefix backend`. It is not needed for the current frontend preview.
-The retained static Apache/Docker workflow is documented separately in
-[DockerContainer/README.md](DockerContainer/README.md); it does not serve the
-Project 2 API.
+The root `package.json` has these 5 scripts:
 
-Environment variable names and local setup are documented in
-[docs/environment.md](docs/environment.md). Copy the placeholder files before
-local development; keep populated `.env` files and all credentials untracked.
-
-## Root build and runtime commands — issue #13
-
-Use Node 22.12 or newer within the Node 22 major version, matching the root
-`engines.node` setting `^22.12.0`. The root package has no application dependencies;
-the frontend and backend each keep their own package and lockfile.
-
-From the repository root:
-
-```bash
-npm run gcp-build
-```
-
-This installs the locked frontend dependencies (including build/test dev
-dependencies even with `NODE_ENV=production`), builds `frontend/dist/`, then
-installs the locked backend production dependencies. The command stops on a
-failed step. It installs packages and builds the frontend; it does not run
-Gemini, create cloud resources, or deploy a service. Root `npm run build` remains
-a quick frontend-only build using already installed dependencies.
-
-After Disha's server in issue #16 is available, the runtime entry command is:
-
-```bash
-PORT=8080 npm start
-```
-
-`npm start` invokes `node backend/server.js` from the repository root. The server
-must listen on the supplied `PORT` and serve `frontend/dist/` with `/api` from
-the same origin. It receives environment configuration from the caller; the
-start script does not embed secrets or use a development server.
-
-**Current dependency:** `backend/server.js` is not present at the issue #13
-baseline. The start command is configured for issue #16; real server startup,
-`/health`, static serving, and API behavior must be verified when that server
-lands. Running `npm start` before then reports a missing module. Issue #14
-remains the backend package owner's work; the root command directly invokes the
-agreed server file without depending on a backend start script.
-
-Google's [Node.js buildpack documentation](https://docs.cloud.google.com/docs/buildpacks/nodejs)
-describes the custom `gcp-build` hook, `engines.node`, and `scripts.start`.
-Deployment should use that build hook; an explicit `GOOGLE_NODE_RUN_SCRIPTS`
-override takes precedence and must not accidentally skip child-package
-installation. The source-based Cloud Run deployment remains its own issue.
-
-Issue #13 verification on November 9, 2026 (America/Los_Angeles), from baseline
-`e79e181`, with Node v22.23.2:
-
-| Check | Result |
+| Script | What it does |
 | --- | --- |
-| `NODE_ENV=production npm run gcp-build` | Passed: locked frontend install, `frontend/dist` build, backend production install. |
-| `npm run test:frontend` after that install | 107 tests passed. |
-| `npm test --prefix backend` | 319 tests passed with controlled local dependencies; no live model/database call. |
-| `npm run check --prefix backend` | Passed. |
-| Child package manifests/lockfiles | Unchanged; root retains no application dependencies. |
-| Live Express start, `/health`, static/API serving | Pending issue #16; server entry file absent at this baseline. |
+| `npm run dev:backend` | Starts the Express server and restarts it when a file changes; reads `backend/.env` |
+| `npm run dev:frontend` | Starts the Vite dev server, which forwards `/api` calls to port 8080 |
+| `npm run build` | Builds the React pages and copies the static pages into `frontend/dist/` |
+| `npm run gcp-build` | What Cloud Run runs: installs and builds the frontend, then installs the backend's runtime packages |
+| `npm start` | Runs `backend/server.js`, which serves `frontend/dist/` and the API |
 
-Historical Project 1 AI-use statement: Claude (Anthropic), ChatGPT (OpenAI) and GitHub Copilot helped plan the deployment steps, work through code and commands, check AWS prices and limits, and draft and edit the documentation. I, Disha Deshmukh, ran every command, made every console change and took every screenshot.
+The backend checks run from `backend/`:
+
+| Script | What it does |
+| --- | --- |
+| `npm test` | Runs the unit tests in `backend/tests/` with `node --test` |
+| `npm run test:photo -- <image file>` | Sends one photo straight to Gemini and prints the steps it read |
+| `npm run test:audio -- <audio file>` | Sends one recording straight to Gemini and prints the transcript and points |
+| `npm run test:agents` | Runs the notes, cards and tutor agents on a sample session; it calls Gemini and never Firestore |
+
+## Deploy
+
+From the repository root, with the secrets `gemini-api-key` and `ga4-api-secret` in Secret Manager:
+
+```bash
+gcloud run deploy studyboard --source . --region us-central1 \
+  --service-account studyboard-run@gen-lang-client-0800605818.iam.gserviceaccount.com \
+  --allow-unauthenticated \
+  --set-secrets GEMINI_API_KEY=gemini-api-key:latest,GA4_API_SECRET=ga4-api-secret:latest \
+  --set-env-vars GOOGLE_CLOUD_PROJECT=gen-lang-client-0800605818,GEMINI_MODEL=gemini-3.8-flash,GA4_MEASUREMENT_ID=<G- id>,MODEL_CALLS_PER_HOUR=30 \
+  --memory 1Gi --timeout 300 --max-instances 3
+```
+
+Cloud Run's Node.js buildpack runs the root `gcp-build` script and then `npm start`. `.gcloudignore` keeps `node_modules`, `.env` files, `docs/` and `DockerContainer/` out of the upload.
+
+## Project 1
+
+Project 1 ran on AWS (EC2 and S3) at studyboard.tech, which is now offline. Its wiki pages remain in this wiki, its video is https://youtu.be/u4GmtcjTVLQ, and its answers to Special Issues 1 and 2 are in [docs/Special-Issues.pdf](docs/Special-Issues.pdf). Project 2 serves the same pages from Cloud Run.
+
+## AI use
+
+We used AI tools (Claude, Gemini, and ChatGPT) as assistants during the development and documentation of this project. The StudyBoard team wrote, reviewed, tested, and debugged all final code and docs, and can explain every part of the system.
