@@ -1,107 +1,146 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+// TutorPanel: the Project 1 tutor panel, now answered by the ADK tutor agent from the saved notes (issue #57).
+// Sends a typed question, shows the answer with the steps it used, and lists the last 20 questions.
+import { useEffect, useState } from 'react';
 import StatusMessage from './StatusMessage.jsx';
-import { createTutorPreview } from '../fixtures/tutorPreview.js';
+import { api } from '../services/apiClient.js';
+import { trackEvent } from '../services/analytics.js';
 
-export default function TutorPanel({ session, examples = [] }) {
+// Nothing to report yet.
+const idleStatus = { kind: 'idle', text: '' };
+
+/**
+ * The tutor's answer to one question, with the steps it used or a "not covered" tag.
+ * @param {{ item: object }} props - item is a Question from the API
+ * @returns {JSX.Element}
+ */
+function TutorAnswer({ item }) {
+  return (
+    <>
+      <p className="tutor-answer">{item.answer}</p>
+      {item.covered ? (
+        <p className="tutor-steps">Steps used: {item.stepsUsed.join(', ')}</p>
+      ) : (
+        <span className="tutor-tag">Not covered by your material</span>
+      )}
+    </>
+  );
+}
+
+/**
+ * The tutor panel.
+ * @param {{ sessionId: string, hasNotes: boolean }} props - hasNotes is false until a build has made notes
+ * @returns {JSX.Element}
+ */
+export default function TutorPanel({ sessionId, hasNotes }) {
   const [question, setQuestion] = useState('');
-  const [submittedQuestion, setSubmittedQuestion] = useState('');
-  const [validationError, setValidationError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
-  const feedbackId = useId();
-  const timer = useRef(null);
-  const failOnce = useRef(import.meta.env.DEV && new URLSearchParams(window.location.search).get('tutorFailOnce') === '1');
-  const canAsk = session.notes.length > 0;
-  const sourceSteps = session.notes.map((note) => note.step).filter((step) => session.photo?.steps.some((source) => source.step === step));
-  const coveredExample = examples.find((item) => item.covered);
-  const uncoveredExample = examples.find((item) => !item.covered);
+  // Saved questions, newest first; the first one is the latest answer.
+  const [questions, setQuestions] = useState([]);
+  const [status, setStatus] = useState(idleStatus);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  function changeQuestion(value) {
-    setQuestion(value);
-    setSubmittedQuestion('');
-    setValidationError('');
-    setError('');
-    setResult(null);
-  }
-
-  function ask(value) {
-    if (loading || !canAsk) return;
-    const trimmed = value.trim();
-    if (!trimmed) {
-      setValidationError('Enter a question before sending.');
-      setResult(null);
-      return;
+  /**
+   * Loads the last 20 questions of this session.
+   * @returns {Promise<void>}
+   */
+  async function loadQuestions() {
+    setStatus({ kind: 'working', text: 'Loading your earlier questions...' });
+    try {
+      const result = await api.listQuestions(sessionId);
+      setQuestions(result.questions);
+      setStatus(idleStatus);
+    } catch (error) {
+      trackEvent('error_shown', { operation: 'question_history' });
+      setStatus({ kind: 'error', text: error.message, onRetry: loadQuestions });
     }
-    setValidationError('');
-    setSubmittedQuestion(trimmed);
-    setResult(null);
-    setLoading(true);
-    timer.current = setTimeout(() => {
-      if (failOnce.current) {
-        failOnce.current = false;
-        setError('The tutor preview failed. Try again.');
-      } else {
-        setError('');
-        setResult(createTutorPreview(trimmed, examples, sourceSteps));
-      }
-      setLoading(false);
-    }, 800);
   }
 
-  function handleSubmit(event) {
+  // Load the history once when the panel first appears.
+  useEffect(() => {
+    loadQuestions();
+  }, [sessionId]);
+
+  /**
+   * Handles the question form.
+   * @param {SubmitEvent} event - the form submit
+   * @returns {Promise<void>}
+   */
+  async function handleSubmit(event) {
+    // Stop the browser from reloading the page on submit.
     event.preventDefault();
-    ask(question);
+    const text = question.trim();
+    if (text) {
+      await askQuestion(text);
+    }
   }
 
-  const status = !canAsk ? 'empty' : validationError ? 'validation-error'
-    : error ? 'service-error' : loading ? 'loading' : result ? 'success' : 'idle';
-  const message = !canAsk ? 'Build session notes before asking a question. Sample responses are unavailable while notes are missing.'
-    : validationError || error || (loading ? 'Loading a sample response. No AI request is being made.'
-      : result ? `Fixture response: ${result.answer}` : '');
+  /**
+   * Sends one question to the tutor agent and puts the answer at the top of the list.
+   * @param {string} text - the question, 1 to 500 characters
+   * @returns {Promise<void>}
+   */
+  async function askQuestion(text) {
+    trackEvent('tutor_question');
+    setStatus({ kind: 'working', text: 'Your tutor is reading your notes...' });
+    try {
+      const result = await api.askTutor(sessionId, text);
+      trackEvent('tutor_answer', { covered: result.question.covered ? 1 : 0 });
+      // Keep the list to the 20 most recent, like the server does.
+      setQuestions((current) => [result.question, ...current].slice(0, 20));
+      setQuestion('');
+      setStatus(idleStatus);
+    } catch (error) {
+      trackEvent('error_shown', { operation: 'tutor_question' });
+      setStatus({ kind: 'error', text: error.message, onRetry: () => askQuestion(text) });
+    }
+  }
+
+  const latest = questions[0];
+  const earlier = questions.slice(1);
+  const formDisabled = !hasNotes || status.kind === 'working';
 
   return (
-    <section className="workspace-panel tutor-panel" aria-label="Typed tutor preview">
+    <section className="workspace-panel tutor-panel" aria-labelledby="tutor-heading">
       <p className="eyebrow">YOUR STUDY TUTOR</p>
-      <h2>Ask your notes.</h2>
-      <p className="panel-copy">Fixture responses only. This typed-question preview does not call an AI tutor or save question history.</p>
-      <div className="tutor-examples">
-        {coveredExample && <button type="button" disabled={loading || !canAsk} onClick={() => changeQuestion(coveredExample.question)}>Use covered sample</button>}
-        {uncoveredExample && <button type="button" disabled={loading || !canAsk} onClick={() => changeQuestion(uncoveredExample.question)}>Use uncovered sample</button>}
-      </div>
+      <h2 id="tutor-heading">Ask your notes.</h2>
+      <p className="panel-copy">Your tutor answers only from this session's board and explanation, and names the steps it used.</p>
       <div className="tutor-bubble">
         <span className="avatar tutor-avatar" aria-hidden="true">✦</span>
-        <div className="tutor-feedback">
-          {canAsk && !result && !loading && !error && !validationError && <p>Type a question, or choose one of the sample prompts.</p>}
-          <StatusMessage
-            id={feedbackId}
-            status={status}
-            message={message}
-            onRetry={error && canAsk ? () => ask(submittedQuestion) : undefined}
-            isRetrying={loading && Boolean(error)}
-          />
-          {result && (
-            <div className="tutor-sources">
-              <p>{result.kind === 'no-match' ? 'No matching fixture answer' : result.covered ? 'Covered sample' : 'Uncovered sample'}</p>
-              <p>{result.stepsUsed.length ? `Steps used: ${result.stepsUsed.join(', ')}` : 'No source steps cited.'}</p>
-            </div>
-          )}
-        </div>
+        {latest ? (
+          <div>
+            <p className="tutor-question">You asked: {latest.question}</p>
+            <TutorAnswer item={latest} />
+          </div>
+        ) : (
+          <p>What part of this board would you like to understand better?</p>
+        )}
       </div>
+      {!hasNotes && <p className="tutor-note">Make notes and flashcards first. Then your tutor can answer.</p>}
       <form onSubmit={handleSubmit} className="tutor-form">
         <input
           value={question}
-          onChange={(event) => changeQuestion(event.target.value)}
+          onChange={(event) => setQuestion(event.target.value)}
+          maxLength={500}
           placeholder="Ask about this session..."
           aria-label="Ask your study tutor"
-          aria-invalid={Boolean(validationError)}
-          aria-describedby={validationError || !canAsk ? feedbackId : undefined}
-          disabled={loading || !canAsk}
+          disabled={formDisabled}
         />
-        <button type="submit" aria-label="Send question" disabled={loading || !canAsk}>↑</button>
+        <button type="submit" aria-label="Send question" disabled={formDisabled}>↑</button>
       </form>
+      <StatusMessage status={status} />
+      {earlier.length > 0 && (
+        <>
+          <h3 className="tutor-history-heading">Earlier questions</h3>
+          <ul className="tutor-history">
+            {earlier.map((item) => (
+              <li key={item.id}>
+                <details>
+                  <summary>{item.question}</summary>
+                  <TutorAnswer item={item} />
+                </details>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </section>
   );
 }

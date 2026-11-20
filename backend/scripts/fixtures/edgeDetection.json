@@ -1,0 +1,30 @@
+{
+  "title": "Canny edge detection",
+  "course": "Computer Vision",
+  "photo": {
+    "title": "Canny edge detection",
+    "steps": [
+      { "number": 1, "text": "grayscale I" },
+      { "number": 2, "text": "blur G(5x5), s=1.4" },
+      { "number": 3, "text": "gradient: Sobel Gx, Gy -> magnitude |G|, angle theta" },
+      { "number": 4, "text": "non-max suppression (thin edges)" },
+      { "number": 5, "text": "double threshold (low, high) + hysteresis" }
+    ],
+    "unreadable": []
+  },
+  "audio": {
+    "transcript": "So this is Canny edge detection, in five steps. First we turn the image into grayscale, because an edge is a change in brightness, not in color. Then we blur it with a five by five Gaussian. We blur before taking the gradient because a derivative makes noise much bigger, so without smoothing every noisy pixel would look like an edge. Oh, and actually use sigma 2, not 1.4. Next, Sobel gives the gradient in x and in y, and from those two we get how strong the edge is and which way it points. Non-max suppression then keeps only the strongest pixel across each edge, so the edges come out one pixel thin. The last step is the important one: a double threshold with hysteresis. Strong edges are kept, and weak edges are kept only if they connect to a strong edge.",
+    "points": [
+      { "kind": "explanation", "text": "Turn the image into grayscale first, because an edge is a change in brightness, not in color." },
+      { "kind": "explanation", "text": "Blur before taking the gradient, because a derivative makes noise much bigger; without smoothing, every noisy pixel would look like an edge." },
+      { "kind": "correction", "text": "Actually use sigma 2, not 1.4." },
+      { "kind": "explanation", "text": "Sobel gives the gradient in x and in y; from those we get how strong the edge is and which way it points." },
+      { "kind": "explanation", "text": "Non-max suppression keeps only the strongest pixel across each edge, so the edges are one pixel thin." },
+      { "kind": "emphasis", "text": "Hysteresis is the important step: weak edges are kept only if they connect to a strong edge." }
+    ]
+  },
+  "questions": {
+    "covered": "Why do we blur the image before taking the gradient?",
+    "uncovered": "How does the Hough transform find straight lines in an edge map?"
+  }
+}

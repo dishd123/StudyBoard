@@ -1,170 +1,206 @@
-import { randomUUID } from 'node:crypto';
-import { runStudySetPipeline, StudySetPipelineError } from '../agents/studySetPipeline.js';
-import { prepareNotesInput, validateNotesResult } from '../agents/notesContract.js';
-import { validateBuildCardsResult } from '../agents/cardsContract.js';
+// Build service (issue #49): runs studySetPipeline, checks its notes and cards against the photo, and saves them.
+// A bad result is retried once; after a second failure the session is marked failed with a plain message.
+import { runAgent } from '../agents/runAgent.js';
+import { createStudySetPipeline } from '../agents/studySetPipeline.js';
+import { HttpError } from '../middleware/errorHandler.js';
+import { writeLog } from './logCall.js';
+import { getSession, markBuildFailed, saveStudySet } from './sessionStore.js';
 
-const messages = {
-  UNAUTHENTICATED: 'Sign in before building a study set.',
-  INVALID_SESSION_ID: 'Provide a valid session ID.',
-  SESSION_NOT_FOUND: 'The session could not be found or is not accessible.',
-  SESSION_LOOKUP_FAILED: 'The saved session could not be loaded. Please try again.',
-  INVALID_SESSION_STATE: 'The saved session has no valid update timestamp.',
-  MISSING_PHOTO: 'Add a processed photo before building a study set.',
-  MISSING_AUDIO: 'Add a processed recording before building a study set.',
-  INVALID_NOTES_INPUT: 'The saved material must contain readable board steps and valid processed audio.',
-  PIPELINE_FAILED: 'The study set could not be generated. Check the saved material and server configuration.',
-  INVALID_NOTES_RESULT: 'Generated notes did not match the saved source material.',
-  INVALID_CARDS_RESULT: 'Generated flashcards did not meet the required count, content, or source-step rules.',
-  BUILD_RETRY_EXHAUSTED: 'The study set could not be generated after two attempts. Please try again.',
-  BUILD_CONFLICT: 'The session changed during this build. Reload it before building again.',
-  PERSISTENCE_FAILED: 'The build state could not be saved. Please try again.'
-};
-const invalidResultCodes = new Set(['INVALID_NOTES_RESULT', 'INVALID_CARDS_RESULT']);
+const maxAttempts = 2; // the first try and one retry
+const minCards = 3; // fewer usable cards than this fails the build
+const maxCards = 12; // extra cards beyond this are dropped
+const buildFailedMessage = 'We could not build notes from this material. Try Rebuild, or replace the photo.';
 
-export class BuildServiceError extends Error {
-  constructor(code, { attempts = 0, failureCode } = {}) {
-    super(messages[code]);
-    this.name = 'BuildServiceError';
-    this.code = code;
-    this.attempts = attempts;
-    this.failureStored = false;
-    if (failureCode) this.failureCode = failureCode;
+/**
+ * Checks the agents' output against the photo's steps and returns only what may be saved.
+ * Never trusts the model: every step number, string and count is checked here.
+ * @param {{ number: number, text: string }[]} steps The board steps saved from the photo.
+ * @param {object|string} notesOutput state.notes: { summary, notes }, as an object or as JSON text.
+ * @param {object|string} cardsOutput state.cards: { cards }, as an object or as JSON text.
+ * @returns {{ summary: string, notes: object[], cards: object[] }} One note per photo step, in step order,
+ *   and 3-12 cards.
+ * @throws {Error} With the reason when the output cannot be used; the caller then retries.
+ */
+export function validateStudySet(steps, notesOutput, cardsOutput) {
+  const notesResult = readAgentOutput(notesOutput, 'notes');
+  const cardsResult = readAgentOutput(cardsOutput, 'cards');
+  const summary = textOrNull(notesResult.summary);
+  if (summary === null) {
+    throw new Error('The notes have no summary.');
   }
-}
-
-function validateGeneratedResult(result, input) {
-  try {
-    if (!result || typeof result !== 'object' || Array.isArray(result)
-        || Object.keys(result).length !== 2 || !Object.hasOwn(result, 'notesResult') || !Object.hasOwn(result, 'cardsResult')) {
-      throw new Error();
-    }
-    validateNotesResult(result.notesResult, input);
-  } catch {
-    throw new BuildServiceError('INVALID_NOTES_RESULT');
+  if (!Array.isArray(notesResult.notes)) {
+    throw new Error('The notes output has no notes list.');
   }
-  try {
-    validateBuildCardsResult(result.cardsResult, result.notesResult);
-  } catch {
-    throw new BuildServiceError('INVALID_CARDS_RESULT');
+  if (!Array.isArray(cardsResult.cards)) {
+    throw new Error('The cards output has no cards list.');
   }
-  return structuredClone(result);
-}
-
-async function generateBuild(input, runPipeline) {
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const result = await runPipeline(structuredClone(input));
-      return { ...validateGeneratedResult(result, input), attempts: attempt };
-    } catch (error) {
-      const invalidResult = error instanceof BuildServiceError && invalidResultCodes.has(error.code);
-      const code = invalidResult ? error.code : 'PIPELINE_FAILED';
-      const retryable = invalidResult || (error instanceof StudySetPipelineError && error.retryable);
-      if (retryable && attempt === 1) continue;
-      throw new BuildServiceError(retryable ? 'BUILD_RETRY_EXHAUSTED' : code, {
-        attempts: attempt,
-        failureCode: retryable ? code : undefined
-      });
-    }
-  }
+  const notes = buildNotes(steps, notesResult.notes);
+  const cards = buildCards(steps, cardsResult.cards);
+  return { summary, notes, cards };
 }
 
 /**
- * Required owned-session persistence boundary; no fallback database or store.
- * saveBuildState atomically compares expectedUpdatedAt, patches the session,
- * and replaces ALL card documents. It returns true, false (inaccessible), or
- * 'conflict' (session changed). Both ready and failed commits use this boundary.
+ * Builds the session's notes and flashcards with the agents and saves them.
+ * @param {{ uid: string, sessionId: string, gaClientId: string|null }} ctx Request context from the route.
+ * @returns {Promise<{ session: object, cards: object[] }>} The ready Session and its new Cards.
+ * @throws {HttpError} 409 without a photo and a recording; 502 after two failed attempts (the session is then
+ *   marked failed); 429 or 503 from runAgent; 400 or 404 from the store.
  */
-export function createBuildService({ getOwnedSession, saveBuildState, runPipeline = runStudySetPipeline } = {}) {
-  if ([getOwnedSession, saveBuildState, runPipeline].some((helper) => typeof helper !== 'function')) {
-    throw new TypeError('Build service requires getOwnedSession, saveBuildState, and runPipeline functions.');
+export async function buildStudySet(ctx) {
+  const session = await getSession(ctx.uid, ctx.sessionId);
+  // The agents pair board steps with what was said, so both must exist.
+  const hasSteps = session.photo !== null && session.photo.steps.length > 0;
+  const hasTranscript = session.audio !== null && session.audio.transcript.trim() !== '';
+  if (!hasSteps || !hasTranscript) {
+    throw new HttpError(409, 'Add a photo and a recording first.');
   }
-  return async function buildStudySet(context = {}) {
-    const uid = context?.uid;
-    const sid = context?.sid;
-    if (typeof uid !== 'string' || !uid.trim()) throw new BuildServiceError('UNAUTHENTICATED');
-    if (typeof sid !== 'string' || !sid.trim() || sid === '.' || sid === '..' || /[/\\]/.test(sid)) {
-      throw new BuildServiceError('INVALID_SESSION_ID');
-    }
-    let session;
-    try {
-      session = await getOwnedSession({ uid, sid });
-    } catch {
-      throw new BuildServiceError('SESSION_LOOKUP_FAILED');
-    }
-    if (!session || session.id !== sid) throw new BuildServiceError('SESSION_NOT_FOUND');
-    if (!session.photo) throw new BuildServiceError('MISSING_PHOTO');
-    if (!session.audio) throw new BuildServiceError('MISSING_AUDIO');
-    let notesInput;
-    try {
-      notesInput = prepareNotesInput(session);
-      if (!notesInput.photo.steps.length) throw new Error();
-    } catch {
-      throw new BuildServiceError('INVALID_NOTES_INPUT');
-    }
-    const expectedUpdatedAt = session.updatedAt;
-    const previousTime = typeof expectedUpdatedAt === 'string' ? Date.parse(expectedUpdatedAt) : NaN;
-    if (!Number.isFinite(previousTime)) throw new BuildServiceError('INVALID_SESSION_STATE');
-    // Advance even when a fast rebuild commits in the same millisecond as the source version.
-    const updatedAt = () => new Date(Math.max(Date.now(), previousTime + 1)).toISOString();
+  const studySet = await generateStudySet(ctx, session.photo, session.audio);
+  // Two failed attempts: the failed status and message stay on the session, so the page can show them later.
+  if (studySet === null) {
+    await markBuildFailed(ctx.uid, ctx.sessionId, buildFailedMessage);
+    throw new HttpError(502, buildFailedMessage);
+  }
+  return saveStudySet(ctx.uid, ctx.sessionId, studySet);
+}
 
-    async function persist(sessionUpdate, cards, attempts) {
-      let saved;
-      try {
-        saved = await saveBuildState({
-          uid, sid, expectedUpdatedAt,
-          sessionUpdate: structuredClone(sessionUpdate),
-          cards: structuredClone(cards),
-          replaceCards: true
-        });
-      } catch {
-        throw new BuildServiceError('PERSISTENCE_FAILED', { attempts });
-      }
-      if (saved === false) throw new BuildServiceError('SESSION_NOT_FOUND', { attempts });
-      if (saved === 'conflict') throw new BuildServiceError('BUILD_CONFLICT', { attempts });
-      if (saved !== true) throw new BuildServiceError('PERSISTENCE_FAILED', { attempts });
-    }
-
-    async function failBuild(error) {
-      const sessionUpdate = {
-        status: 'failed', errorMessage: error.message,
-        summary: '', notes: [], cardCount: 0, updatedAt: updatedAt()
-      };
-      try {
-        await persist(sessionUpdate, [], error.attempts);
-      } catch (saveError) {
-        saveError.failureCode = error.code;
-        throw saveError;
-      }
-      error.failureStored = true;
-      throw error;
-    }
-
-    let generated;
+/**
+ * Runs the pipeline up to twice and returns the first study set that passes validateStudySet.
+ * @param {object} ctx Request context.
+ * @param {object} photo The session's photo; only title, steps and unreadable go to the model, never the thumbnail.
+ * @param {object} audio The session's recording result; only transcript and points go to the model.
+ * @returns {Promise<object|null>} The validated { summary, notes, cards }, or null after two failures.
+ * @throws {HttpError} 429 or 503 from runAgent; neither would improve on a retry.
+ */
+async function generateStudySet(ctx, photo, audio) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      generated = await generateBuild(notesInput, runPipeline);
+      const result = await runAgent({
+        agent: createStudySetPipeline(), // a new pipeline per attempt: an agent can have only one parent
+        ctx,
+        operation: 'adk.studySetPipeline',
+        message: 'Build the study set for this session.',
+        state: {
+          photo: { title: photo.title, steps: photo.steps, unreadable: photo.unreadable },
+          audio: { transcript: audio.transcript, points: audio.points },
+        },
+        maxLlmCalls: 4, // the limit covers both agents; each needs one call, so two are spare
+      });
+      return validateStudySet(photo.steps, result.state.notes, result.state.cards);
     } catch (error) {
-      return failBuild(error);
+      // A busy (429) or unconfigured (503) AI service is not a bad result, so it is not retried.
+      if (error instanceof HttpError && error.status !== 502) {
+        throw error;
+      }
+      // The reason is a fixed sentence, never model text, so it is safe to log.
+      writeLog('WARNING', 'study set attempt failed', {
+        operation: 'adk.studySetPipeline',
+        uid: ctx.uid,
+        sessionId: ctx.sessionId,
+        attempt,
+        errorMessage: error.message,
+      });
     }
-    const { notesResult, cardsResult, attempts } = generated;
-    const cards = cardsResult.cards.map(({ question, answer, step }) => ({
-      id: randomUUID(), question, answer, step, known: false
-    }));
-    const sessionUpdate = {
-      summary: notesResult.summary,
-      notes: notesResult.notes.map(({ step, boardText, explanation, correction }) => ({
-        step, boardText, explanation, correction
-      })),
-      cardCount: cards.length,
-      status: 'ready',
-      errorMessage: null,
-      updatedAt: updatedAt()
+  }
+  return null;
+}
+
+/**
+ * Turns an agent's saved output into an object. ADK saves the parsed object, or the raw text when it was not JSON.
+ * @param {unknown} output state.notes or state.cards.
+ * @param {string} name 'notes' or 'cards', for the error message.
+ * @returns {object} The output as an object.
+ * @throws {Error} When the output is missing, is not valid JSON, or is not a JSON object.
+ */
+function readAgentOutput(output, name) {
+  let value = output;
+  if (typeof output === 'string') {
+    try {
+      value = JSON.parse(output);
+    } catch {
+      // A fixed message: JSON.parse's own message quotes the text, which holds the student's material.
+      throw new Error(`The ${name} output is not valid JSON.`);
+    }
+  }
+  if (!isObject(value)) {
+    throw new Error(`The ${name} output is missing.`);
+  }
+  return value;
+}
+
+/**
+ * Makes one note per photo step, in step order, from the model's notes.
+ * @param {{ number: number, text: string }[]} steps The photo's board steps.
+ * @param {unknown[]} modelNotes The notes list the model wrote.
+ * @returns {{ stepNumber: number, boardText: string, explanation: string|null, correction: string|null }[]}
+ */
+function buildNotes(steps, modelNotes) {
+  const stepNumbers = steps.map((step) => step.number);
+  // The first note the model wrote for each photo step; notes for any other step number are dropped.
+  const noteByStep = new Map();
+  for (const note of modelNotes) {
+    if (isObject(note) && stepNumbers.includes(note.stepNumber) && !noteByStep.has(note.stepNumber)) {
+      noteByStep.set(note.stepNumber, note);
+    }
+  }
+  // Sort a copy: sort() reorders its array in place, and steps belongs to the caller.
+  const sortedSteps = [...steps].sort((first, second) => first.number - second.number);
+  return sortedSteps.map((step) => {
+    const modelNote = noteByStep.get(step.number) || {}; // a step the model skipped gets an empty note
+    return {
+      stepNumber: step.number,
+      boardText: step.text, // always the photo's text, never the model's copy
+      explanation: textOrNull(modelNote.explanation),
+      correction: textOrNull(modelNote.correction),
     };
-    try {
-      await persist(sessionUpdate, cards, attempts);
-    } catch (error) {
-      if (error.code === 'SESSION_NOT_FOUND' || error.code === 'BUILD_CONFLICT') throw error;
-      return failBuild(error);
+  });
+}
+
+/**
+ * Keeps the model's usable flashcards: a photo step and a non-empty question and answer.
+ * @param {{ number: number, text: string }[]} steps The photo's board steps.
+ * @param {unknown[]} modelCards The cards list the model wrote.
+ * @returns {{ question: string, answer: string, stepNumber: number }[]} At most 12 cards, in the model's order.
+ * @throws {Error} When fewer than 3 cards are usable.
+ */
+function buildCards(steps, modelCards) {
+  const stepNumbers = steps.map((step) => step.number);
+  const cards = [];
+  for (const card of modelCards) {
+    if (!isObject(card) || !stepNumbers.includes(card.stepNumber)) {
+      continue;
     }
-    return structuredClone({ session: { id: sid, ...sessionUpdate }, notesResult, cardsResult, cards });
-  };
+    const question = textOrNull(card.question);
+    const answer = textOrNull(card.answer);
+    if (question === null || answer === null) {
+      continue;
+    }
+    cards.push({ question, answer, stepNumber: card.stepNumber });
+  }
+  if (cards.length < minCards) {
+    throw new Error(`Only ${cards.length} usable flashcards; at least ${minCards} are needed.`);
+  }
+  return cards.slice(0, maxCards);
+}
+
+/**
+ * @param {unknown} value A field the model wrote.
+ * @returns {string|null} The text without surrounding spaces, or null when it is not text or is empty.
+ */
+function textOrNull(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const text = value.trim();
+  if (text === '') {
+    return null;
+  }
+  return text;
+}
+
+/**
+ * @param {unknown} value Anything from the model's output.
+ * @returns {boolean} True for a plain object (not null, not an array).
+ */
+function isObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
