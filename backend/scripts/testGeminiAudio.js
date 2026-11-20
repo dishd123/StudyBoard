@@ -1,76 +1,76 @@
-import { readFile, stat } from 'node:fs/promises';
-import { extname } from 'node:path';
-import { analyzeAudio, AudioProcessingError } from '../services/geminiAudioService.js';
+// Recording check from the command line (issue #162): sends one local recording to Gemini through readRecording.
+// Usage: npm run test:audio -- <audio file> [content type]. Prints the transcript and points as JSON, then the time.
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { readRecording, toGeminiAudioType } from '../services/geminiAudioService.js';
 
-const mimeTypesByExtension = {
-  '.webm': 'audio/webm',
-  '.mp4': 'audio/mp4',
-  '.m4a': 'audio/m4a',
-  '.ogg': 'audio/ogg',
-  '.oga': 'audio/ogg',
-  '.wav': 'audio/wav',
-  '.mp3': 'audio/mpeg',
-  '.aac': 'audio/aac',
-  '.flac': 'audio/flac',
-  '.aif': 'audio/aiff',
-  '.aiff': 'audio/aiff'
-};
+// File extension -> the content type a browser would send for that file.
+const audioTypes = new Map([
+  ['.webm', 'audio/webm'],
+  ['.ogg', 'audio/ogg'],
+  ['.mp4', 'audio/mp4'],
+  ['.m4a', 'audio/x-m4a'],
+  ['.mp3', 'audio/mpeg'],
+  ['.wav', 'audio/wav'],
+  ['.aac', 'audio/aac'],
+  ['.flac', 'audio/flac'],
+]);
+// Fixed ids for the log lines: this call belongs to no signed-in user and no saved session.
+const ctx = { uid: 'local-test', sessionId: 'local-test', gaClientId: null };
 
-class VerificationError extends Error {}
-
+/**
+ * Checks the arguments and the key, reads the recording, and prints what Gemini heard.
+ * @returns {Promise<void>} Sets process.exitCode to 1 when anything fails.
+ */
 async function main() {
-  const [audioPath, explicitMimeType, ...extraArgs] = process.argv.slice(2);
-  if (!audioPath || extraArgs.length) {
-    throw new VerificationError('Usage: node scripts/testGeminiAudio.js <audio-file> [audio-mime-type]');
+  const audioPath = process.argv[2];
+  if (!audioPath) {
+    console.error('Usage: npm run test:audio -- <audio file> [content type, for example audio/webm;codecs=opus]');
+    process.exitCode = 1;
+    return;
   }
-  const mimeType = (explicitMimeType ?? mimeTypesByExtension[extname(audioPath).toLowerCase()])
-    ?.split(';')[0].trim().toLowerCase();
-  if (!Object.values(mimeTypesByExtension).includes(mimeType) || /[\r\n]/.test(explicitMimeType ?? '')) {
-    throw new VerificationError('Use a supported audio extension or supply its audio MIME type explicitly.');
+  // npm run test:audio loads backend/.env, where the key lives.
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set. Copy backend/.env.example to backend/.env, add your key, and try again.');
+    process.exitCode = 1;
+    return;
   }
-
-  let file;
+  // The optional second argument overrides the type the extension implies, to test what a browser sends.
+  let contentType = process.argv[3];
+  if (contentType === undefined) {
+    contentType = audioTypes.get(path.extname(audioPath).toLowerCase());
+  }
+  const geminiType = toGeminiAudioType(contentType);
+  if (geminiType === null) {
+    console.error('Use a .webm, .ogg, .mp4, .m4a, .mp3, .wav, .aac or .flac file, or pass a supported content type.');
+    process.exitCode = 1;
+    return;
+  }
+  let audioBytes;
   try {
-    file = await stat(audioPath);
-  } catch {
-    throw new VerificationError('Audio file was not found or could not be accessed. Check the local path.');
+    audioBytes = await readFile(audioPath);
+  } catch (error) {
+    console.error(`Could not read ${audioPath} (${error.code}).`);
+    process.exitCode = 1;
+    return;
   }
-  if (!file.isFile() || file.size === 0) {
-    throw new VerificationError('Choose a nonempty audio file containing a short spoken explanation.');
+  // The upload route refuses an empty recording too.
+  if (audioBytes.length === 0) {
+    console.error(`${audioPath} is empty.`);
+    process.exitCode = 1;
+    return;
   }
-
-  // Diagnostics go to stderr; stdout contains only the validated audio result.
-  console.error(JSON.stringify({
-    apiKeyPresent: Boolean(process.env.GEMINI_API_KEY?.trim()),
-    model: process.env.GEMINI_AUDIO_MODEL?.trim() || 'gemini-3.8-flash',
-    audioFileExists: true,
-    audioFileBytes: file.size,
-    mimeType
-  }));
-  let audioBuffer;
+  console.log(`Sending ${path.basename(audioPath)} (${audioBytes.length} bytes) to Gemini as ${geminiType}...`);
+  const startedAt = Date.now();
   try {
-    audioBuffer = await readFile(audioPath);
-  } catch {
-    throw new VerificationError('Audio file could not be read. Check the local file permissions.');
-  }
-  try {
-    const result = await analyzeAudio({ audioBuffer, mimeType });
-    if (!result.transcript.trim()) {
-      throw new VerificationError('The result passed validation but had no intelligible transcript. Try a clear spoken sample.');
-    }
+    const result = await readRecording(ctx, audioBytes, contentType);
     console.log(JSON.stringify(result, null, 2));
-  } finally {
-    audioBuffer.fill(0);
+    console.log(`Gemini answered in ${Date.now() - startedAt} ms.`);
+  } catch (error) {
+    // The JSON log line printed above this one shows the cause.
+    console.error(`Failed after ${Date.now() - startedAt} ms: ${error.message}`);
+    process.exitCode = 1;
   }
 }
 
-main().catch((error) => {
-  if (error instanceof AudioProcessingError) {
-    console.error(`${error.code}: ${error.message}`);
-  } else if (error instanceof VerificationError) {
-    console.error(error.message);
-  } else {
-    console.error('Audio verification could not complete. Check the local setup and try again.');
-  }
-  process.exitCode = 1;
-});
+await main();
