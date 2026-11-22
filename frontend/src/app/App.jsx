@@ -1,4 +1,4 @@
-// App: the /app/ single-page app (issue #160).
+// App: the /app/ single-page app (issue).
 // Shows a loading line, the signed-out panel, the Dashboard, or one session, chosen by sign-in state and the URL hash.
 import { useEffect, useState } from 'react';
 import SiteNav from '../SiteNav.jsx';
@@ -79,7 +79,7 @@ export default function App() {
             <div>
               <p className="eyebrow">YOUR STUDY WORKSPACE</p>
               <h1>Sign in to see your sessions.</h1>
-              <p className="lead">StudyBoard keeps your boards, notes and flashcards under your Google account.</p>
+              <p className="lead">StudyBoard keeps your boards, notes and flashcards in your own account.</p>
               <a className="btn btn-primary" href="/login/">Sign in</a>
             </div>
           </div>

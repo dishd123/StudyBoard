@@ -8,13 +8,14 @@
 <section class="container pb-5"><div class="row"><div class="col-lg-8 privacy-content">
 <h2>What StudyBoard stores</h2>
 <ul>
-<li>Your Google account id, so only you can open your sessions. Firebase Authentication also keeps the name and email address of your Google account so that you can sign in.</li>
+<li>Your account id, so only you can open your sessions. Firebase Authentication keeps your name and email address so that you can sign in. If you sign in with an email and password, Firebase keeps the password; StudyBoard never receives it.</li>
 <li>The text of each study session: its title, course, board steps, recording transcript, notes, flashcards and tutor questions.</li>
-<li>Two small copies of each board photo you import: a thumbnail of at most 600 pixels and an icon of at most 160 pixels.</li>
+<li>Two small copies of each board photo you add: a thumbnail of at most 600 pixels and an icon of at most 160 pixels.</li>
 </ul>
 <p>StudyBoard does not keep your audio recording or the full-size photo. The recording is turned into text and then discarded.</p>
-<h2>Google Photos and Gemini</h2>
-<p>When you import a photo, Google asks you to let StudyBoard see the photos you pick. StudyBoard reads only the one photo you pick. StudyBoard does not save the Google Photos access token, which expires within an hour. You can remove StudyBoard's access in your Google Account settings at any time.</p>
+<h2>Your photos and Gemini</h2>
+<p>When you upload a photo from your phone or computer, your browser makes the two small copies and a copy of at most 1600 pixels for Gemini, and sends only those. Uploading asks for no permission.</p>
+<p>When you import a photo from Google Photos instead, Google asks you to let StudyBoard see the photos you pick. StudyBoard reads only the one photo you pick. StudyBoard does not save the Google Photos access token, which expires within an hour. You can remove StudyBoard's access in your Google Account settings at any time.</p>
 <p>StudyBoard sends your photo and your recording to the Google Gemini API to read the board and the speech. To write your notes and flashcards, it sends Gemini the board steps and the recording text it saved. For the tutor, it sends each question you ask together with your saved material.</p>
 <p>On the free tier of the Gemini API, Google may use the photos, recordings and text it receives to improve its products. On the paid tier, Google does not. Each tier is described at <a href="https://ai.google.dev/gemini-api/terms">ai.google.dev/gemini-api/terms</a>.</p>
 <h2>Google Analytics</h2>
