@@ -176,6 +176,11 @@ export const api = {
     return request('importPhoto', 'POST', `${sessionPath(sid)}/photo`, { headers: { 'X-Photos-Token': photosToken } });
   },
 
+  /** POST /api/sessions/:sid/upload -> { session }. form holds the photo, thumbnail and icon JPEGs; fetch sets the form's Content-Type. */
+  uploadPhoto(sid, form) {
+    return request('uploadPhoto', 'POST', `${sessionPath(sid)}/upload`, { body: form });
+  },
+
   /** POST /api/sessions/:sid/audio -> { session }. blob is the raw recording (at most 10 MB); durationSeconds is whole seconds, 0-180. */
   uploadRecording(sid, blob, durationSeconds) {
     return request('uploadRecording', 'POST', `${sessionPath(sid)}/audio?durationSeconds=${durationSeconds}`, {

@@ -1,11 +1,15 @@
 // MaterialTab: the photo and the recording of one session, and the button that builds the study set (issue #54).
-// Shows the photo import, the board preview, the recorder, the saved transcript, and "Make notes and flashcards".
+// Shows the photo upload, the Google Photos import, the board preview, the recorder, the saved transcript,
+// and "Make notes and flashcards".
 import { useState } from 'react';
+import PhotoUploadPanel from './PhotoUploadPanel.jsx';
 import PhotoImportPanel from './PhotoImportPanel.jsx';
 import BoardPreview from './BoardPreview.jsx';
 import AudioRecorder from './AudioRecorder.jsx';
 import StatusMessage from './StatusMessage.jsx';
 import { api } from '../services/apiClient.js';
+import { auth } from '../services/firebase.js';
+import { usesGoogle } from '../hooks/useAuth.js';
 import { trackEvent } from '../services/analytics.js';
 
 // Nothing to report yet.
@@ -55,7 +59,16 @@ export default function MaterialTab({ session, onSessionChange, onBuilt }) {
     <div className="material-tab">
       <div className="row g-4">
         <div className="col-lg-7">
-          <PhotoImportPanel sessionId={session.id} onImported={onSessionChange} />
+          <PhotoUploadPanel sessionId={session.id} onUploaded={onSessionChange} />
+          {/* Google Photos needs a Google account's permission, so only Google sign-ins get this option. */}
+          {usesGoogle(auth.currentUser) ? (
+            <details className="material-transcript mb-4">
+              <summary>Or import from Google Photos</summary>
+              <PhotoImportPanel sessionId={session.id} onImported={onSessionChange} />
+            </details>
+          ) : (
+            <p className="photo-hint mb-4">To import from Google Photos instead, sign in with Google.</p>
+          )}
           <BoardPreview photo={session.photo} />
         </div>
         <div className="col-lg-5">

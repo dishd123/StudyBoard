@@ -15,7 +15,7 @@ export default function BoardPreview({ photo }) {
       <section className="workspace-panel board-panel h-auto mb-4">
         <p className="eyebrow">LATEST BOARD</p>
         <h2>No board photo yet</h2>
-        <p>Choose a photo of your whiteboard or notes in Google Photos. StudyBoard reads the steps written on it.</p>
+        <p>Upload a photo of your whiteboard or notes. StudyBoard reads the steps written on it.</p>
       </section>
     );
   }

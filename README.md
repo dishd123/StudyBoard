@@ -8,8 +8,8 @@ StudyBoard turns one photo of a whiteboard or handwritten page, plus the student
 
 ## How it works
 
-1. The user signs in with Google (Firebase Authentication).
-2. The user imports one photo from Google Photos (Photos Picker API). Gemini reads it into ordered steps, in a direct call with a JSON schema.
+1. The user signs in with an email and password, or with Google (Firebase Authentication).
+2. The user uploads one photo from their phone or computer; the browser shrinks it first. A user signed in with Google can import it from Google Photos (Photos Picker API) instead. Gemini reads the photo into ordered steps, in a direct call with a JSON schema.
 3. The user records an explanation in the browser (up to 3 minutes). Gemini turns it into a transcript and tagged points (explanation, correction, emphasis), in a second direct call.
 4. A Google Agent Development Kit (ADK) pipeline, `studySetPipeline`, runs two agents in order. `notesAgent` pairs each written step with what was said and keeps a spoken correction next to the original value. `cardsAgent` then writes flashcards from those notes.
 5. `tutorAgent` answers typed questions. It calls the `getSessionNotes` tool, which reads only the signed-in user's session, and says when the material does not cover a question.
