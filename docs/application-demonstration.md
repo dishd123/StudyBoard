@@ -36,6 +36,12 @@ browser outcomes remain to be completed.
 Open the session's **Material** tab. Choose one whiteboard or handwritten-page
 photo by either route below.
 
+### Demonstration Material
+
+The Chrome demonstration used the following Canny edge-detection board as the session material. Step 2 intentionally contains `σ = 1.4` so the spoken explanation can demonstrate a correction to `2`.
+
+![Canny edge-detection board used for the demonstration](images/application-demo/00-canny-board-material.png)
+
 ### Upload from Device
 
 Choose **Upload a photo** and select an image from the phone or computer. The
