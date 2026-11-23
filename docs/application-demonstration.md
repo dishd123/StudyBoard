@@ -2,10 +2,10 @@
 
 This page is a draft walkthrough of one StudyBoard session, from sign-in and
 source material to notes, flashcards, and the study tutor. It describes the
-current application and plans the evidence to capture; generated results and
-browser outcomes have not been asserted by this draft.
+current application and includes observed Chrome evidence. Some evidence and
+browser outcomes remain to be completed.
 
-> Final browser screenshots will be added after compatibility verification.
+> Chrome evidence is shown below; the final cross-browser pass remains incomplete.
 
 ## 1. Sign In
 
@@ -15,9 +15,9 @@ browser outcomes have not been asserted by this draft.
 2. After successful authentication, the application opens the workspace at
    `/app/`. A user who is already signed in can choose **Go to your sessions**.
 
-> **Screenshot TODO — Sign in:** Capture the sign-in page showing the available
-> actions, and the signed-in dashboard showing the session controls. Use two
-> screenshots if needed; do not expose account credentials.
+![StudyBoard sign-in page with empty credentials](images/application-demo/01-sign-in.png)
+
+![Signed-in dashboard session-creation controls](images/application-demo/02-session-form.png)
 
 ## 2. Create a Study Session
 
@@ -27,9 +27,9 @@ browser outcomes have not been asserted by this draft.
 2. The new session opens immediately in its workspace. Use **Back to your
    sessions** to return to the dashboard and reopen its entry when needed.
 
-> **Screenshot TODO — Create session:** Capture the Title and Course fields and
-> **New study session** control, then the resulting workspace or dashboard entry
-> with the chosen title and course visible.
+![New-session form with title and course](images/application-demo/02-session-form.png)
+
+![New session opened in the workspace](images/application-demo/03-session-workspace.png)
 
 ## 3. Add One Board Photo
 
@@ -42,8 +42,7 @@ Choose **Upload a photo** and select an image from the phone or computer. The
 browser makes JPEG copies for the upload; after processing, the board preview
 shows the saved photo and recognized steps.
 
-> **Screenshot TODO — Device upload:** Capture the **Upload a photo** control
-> and the processed board preview with at least one numbered step visible.
+![Processed board and recognized steps](images/application-demo/04-board-preview.png)
 
 ### Import from Google Photos
 
@@ -72,9 +71,12 @@ separately from account sign-in.
    a transcript and spoken points tagged `explanation`, `correction`, or
    `emphasis`.
 
-> **Screenshot TODO — Recording:** Capture either the active recording indicator
-> and timer or the completed playback and **Use this recording** controls, plus
-> the saved transcript and tagged points after processing.
+![Active recording and timer](images/application-demo/05-recording.png)
+
+![Completed recording playback controls](images/application-demo/05b-recording-playback.png)
+
+![Saved transcript and tagged spoken points](images/application-demo/06-transcript.png)
+
 
 ## 5. Demonstrate a Spoken Correction
 
@@ -82,12 +84,9 @@ For the final browser demonstration, use a board that says **`σ = 1.4`**. In th
 spoken explanation, explicitly say that sigma should be **2**, not **1.4** as
 written. After building, check the Notes tab: the original board value should
 remain visible, and the spoken correction should appear separately rather than
-silently replacing it. The generated result must be inspected; this is a plan,
-not a claim that the model has already produced that result.
+silently replacing it. The observed Notes result is shown below.
 
-> **Screenshot TODO — Spoken correction:** Capture the Notes table row with
-> `σ = 1.4` in **On the board** and the separate correction to `2` in the shaded
-> **Correction** cell, with the step number visible.
+![Notes preserving the original value and correction](images/application-demo/08-notes-correction.png)
 
 ## 6. Build Notes and Flashcards
 
@@ -96,9 +95,10 @@ Material. The server makes notes and then flashcards. The build status is shown
 while it runs; a completed result opens the **Notes** tab. The server also
 requires readable board steps and a nonempty transcript.
 
-> **Screenshot TODO — Build:** Capture the ready board and saved recording with
-> the enabled **Make notes and flashcards** control or its in-progress status,
-> followed by the generated Notes view after success.
+![Ready to build notes and flashcards](images/application-demo/07-build-ready.png)
+
+![Generated notes after the build](images/application-demo/08-notes-correction.png)
+
 
 ## 7. Review Generated Notes
 
@@ -107,9 +107,7 @@ The **Notes** tab shows a summary and a table with **Step**, **On the board**,
 correction is displayed in a shaded cell. A step without a saved explanation
 shows **Not explained in the recording.**
 
-> **Screenshot TODO — Notes:** Capture the summary and table headings, including
-> the sigma row showing `1.4` on the board and the separately shaded correction
-> to `2`. Include an unexplained-step fallback if the demonstration has one.
+![Generated notes and correction](images/application-demo/08-notes-correction.png)
 
 ## 8. Study with Flashcards
 
@@ -119,9 +117,7 @@ question and answer; the card displays its source **Step**. Use **Previous** and
 don't know yet** to load the backend's unknown-card view. **Delete card** asks
 for confirmation before deletion. An empty deck shows an explanatory message.
 
-> **Screenshot TODO — Flashcards:** Capture a generated card with its question
-> or answer, source step, Previous/Next controls, and Got it/Still learning
-> controls. Include the unknown-only filter if it fits legibly.
+![Generated flashcard and review controls](images/application-demo/09-flashcards.png)
 
 ## 9. Ask the Study Tutor
 
@@ -138,6 +134,11 @@ final evidence should show the submitted question, the actual generated answer,
 and **Steps used:** with the relevant board step. Check the answer against the
 saved notes; do not assume the model's result in advance.
 
+![Tutor response to the sigma question](images/application-demo/10-tutor-covered.png)
+
+The answer correctly cited step 2 in its text, but the interface also displayed
+**Not covered by your material**. This inconsistency remains unresolved.
+
 > **Screenshot TODO — Covered tutor question:** Capture the sigma question, the
 > tutor's actual answer, and the visible **Steps used:** line with its step number.
 
@@ -148,8 +149,7 @@ the capital of France?”**, provided that fact is absent from the session. Chec
 that the response reflects the saved material's limits and displays **Not covered
 by your material**. The exact generated answer is not prescribed here.
 
-> **Screenshot TODO — Uncovered tutor question:** Capture the unrelated question,
-> the actual tutor response, and the **Not covered by your material** indicator.
+![Tutor response to a question outside the material](images/application-demo/11-tutor-uncovered.png)
 
 ## 10. Replace Material and Rebuild
 
@@ -170,12 +170,13 @@ saved processed recording; it does not create another session.
 Return to Notes and choose **Rebuild** to generate notes and cards from the
 currently saved material. A successful rebuild replaces the generated card set;
 the new cards start as not known, so earlier review marks do not carry over.
-These steps still need the final browser pass.
+The Chrome pass observed a successful rebuild after replacing the recording and after re-uploading the same photo.
 
-> **Screenshot TODO — Replacement and rebuild:** Capture a sequence showing
-> (1) the existing built session, (2) the changed photo or recording and the
-> needs-rebuild banner, and (3) rebuilt notes and cards after success. Show the
-> same session title and the reset review state where practical.
+![Changed recording requires a rebuild](images/application-demo/12-rebuild-needed.png)
+
+![Rebuilt cards reset review progress](images/application-demo/12b-rebuilt-cards.png)
+
+The photo was also re-uploaded using the same supplied image and a subsequent rebuild succeeded. A different photo was not tested.
 
 ## 11. Error and Retry Behavior
 
@@ -193,11 +194,16 @@ Use safe, reversible examples during the final pass:
    displays the returned message and **Try again**. Do not damage saved data or
    change cloud configuration merely to force an error.
 
-These are source-based expectations, not observations from this draft.
+The scenarios above are source-based expectations; the observed Chrome evidence is shown below.
 
-> **Screenshot TODO — Error and retry:** Capture one actual error message and its
-> **Try again** control, then capture the subsequent outcome after a safe retry.
-> Hide account details and unrelated personal material.
+![Google Photos window closed error and Try again control](images/application-demo/13-error-retry.png)
+
+During the Chrome pass, Google Photos authorization showed 403 `access_denied`
+because the app was limited to approved testers. StudyBoard then displayed the
+window-closed message above. The Try again control reopened the Google authorization window; the approved-tester restriction still blocked import. Microphone denial also produced a clear message and retry control. After permission was restored and the page reloaded, a new recording started; the microphone retry button itself was not exercised.
+
+> **Screenshot TODO — Retry outcome:** Capture the subsequent outcome after a
+> safe retry. Hide account details and unrelated personal material.
 
 ## 12. End-to-End Demonstration Checklist
 
@@ -219,9 +225,9 @@ These are source-based expectations, not observations from this draft.
 
 Final verification fields, to be completed after the browser pass:
 
-- Chrome version:
-- Chrome test date:
+- Chrome version: 157.0.8103.79
+- Chrome test date: 2026-11-22
 - Safari version:
 - Safari test date:
-- Deployed application URL:
+- Deployed application URL: https://studyboard-389363739519.us-central1.run.app/
 - Final screenshot pass completed:
