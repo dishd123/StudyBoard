@@ -91,7 +91,7 @@ async function generateStudySet(ctx, photo, audio) {
       if (error instanceof HttpError && error.status !== 502) {
         throw error;
       }
-      // The reason is a fixed sentence, never model text, so it is safe to log.
+      // Record the failed attempt for diagnosis; runAgent maps model errors to plain messages.
       writeLog('WARNING', 'study set attempt failed', {
         operation: 'adk.studySetPipeline',
         uid: ctx.uid,

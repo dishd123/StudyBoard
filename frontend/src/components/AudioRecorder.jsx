@@ -1,5 +1,5 @@
 // AudioRecorder: records one spoken explanation in the browser and uploads it (issue #43).
-// Works in Chrome, Edge and Safari; stops by itself at 3:00; offers playback, Re-record and "Use this recording".
+// Selects a supported WebM or MP4 format; stops at 3:00; offers playback, Re-record and "Use this recording".
 import { useEffect, useRef, useState } from 'react';
 import StatusMessage from './StatusMessage.jsx';
 import { api } from '../services/apiClient.js';
