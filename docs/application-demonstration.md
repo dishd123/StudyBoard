@@ -1,239 +1,205 @@
 # Application Demonstration
 
-This page is a draft walkthrough of one StudyBoard session, from sign-in and
-source material to notes, flashcards, and the study tutor. It describes the
-current application and includes observed Chrome evidence. Some evidence and
-browser outcomes remain to be completed.
+## 1. Application overview
 
-> Chrome evidence is shown below; the final cross-browser pass remains incomplete.
+StudyBoard turns a whiteboard photograph and a spoken explanation into study
+material. A student creates a session, adds a board photo, records an
+explanation, generates notes and flashcards, and asks a tutor questions grounded
+in that session's saved material.
 
-## 1. Sign In
+This walkthrough uses a Canny edge-detection board with five steps. The
+screenshots show real demonstration and compatibility-test sessions; generated
+wording and card counts may vary between builds.
 
-1. Open **Sign in** from the navigation. Use **Continue with Google**, or sign in
-   with an existing email and password. The page also offers account creation
-   and password reset.
-2. After successful authentication, the application opens the workspace at
-   `/app/`. A user who is already signed in can choose **Go to your sessions**.
+## 2. Authentication and dashboard
 
-![StudyBoard sign-in page with empty credentials](images/application-demo/01-sign-in.png)
+1. Open **Sign in** and use an existing email/password account or **Continue
+   with Google**. Google sign-in opens a separate authentication window.
+2. On the dashboard, enter a **Title** and **Course**, then select **New study
+   session**. The new session opens with **Material**, **Notes**, and **Study**
+   tabs. The dashboard can be used to reopen a saved session.
 
-![Signed-in dashboard session-creation controls](images/application-demo/02-session-form.png)
+![Sign-in page with Google and email options](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/01-sign-in.png)
 
-## 2. Create a Study Session
+*The sign-in page, with no credentials entered.*
 
-1. On the dashboard, enter a **Title** and a free-text **Course**, then choose
-   **New study session**. Course suggestions are available, and a blank course
-   becomes `General`.
-2. The new session opens immediately in its workspace. Use **Back to your
-   sessions** to return to the dashboard and reopen its entry when needed.
+![Session title, course and creation button](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/02-session-form.png)
 
-![New-session form with title and course](images/application-demo/02-session-form.png)
+*Creating the demonstration session.*
 
-![New session opened in the workspace](images/application-demo/03-session-workspace.png)
+## 3. Import study material
 
-## 3. Add One Board Photo
+The board below is the source image used in the demonstration. Its second step
+reads **σ = 1.4**; the recording will provide a different value as a spoken
+correction.
 
-Open the session's **Material** tab. Choose one whiteboard or handwritten-page
-photo by either route below.
+![Canny edge-detection demonstration board](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/00-canny-board-material.png)
 
-### Demonstration Material
+*The original five-step board.*
 
-The Chrome demonstration used the following Canny edge-detection board as the session material. Step 2 intentionally contains `σ = 1.4` so the spoken explanation can demonstrate a correction to `2`.
+### Upload from a device
 
-![Canny edge-detection board used for the demonstration](images/application-demo/00-canny-board-material.png)
+1. In **Material**, select **Upload a photo** and choose the board image.
+2. Wait for processing. The preview shows the board and the recognized steps.
 
-### Upload from Device
+![Device-uploaded Canny board and five recognized steps](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/04-board-preview.png)
 
-Choose **Upload a photo** and select an image from the phone or computer. The
-browser makes JPEG copies for the upload; after processing, the board preview
-shows the saved photo and recognized steps.
-
-![Processed board and recognized steps](images/application-demo/04-board-preview.png)
+*The processed device upload, including the original value in step 2.*
 
 ### Import from Google Photos
 
-This option is shown for Google sign-ins. Google Photos access is requested
-separately from account sign-in.
+For a Google sign-in, expand **Or import from Google Photos**, select **Choose a
+photo in Google Photos**, and authorize Photos access when prompted. Open the
+Picker, choose the image, return to StudyBoard, and select **Import my picked
+photo**. Wait for the processed board preview.
 
-1. Expand **Or import from Google Photos** and select **Choose a photo in Google
-   Photos**. Allow the requested Photos permission to start the Picker session.
-2. Select **Open Google Photos**, choose one board photo in the Picker, and
-   return to StudyBoard.
-3. Select **Import my picked photo** and wait for processing and the board
-   preview. The Picker interaction still needs browser verification.
+The Edge and Safari compatibility reports record successful Google Photos
+imports. No screenshot of the Picker is included; the image above documents a
+**device upload**. During
+the earlier Chrome pass, Google Photos authorization was blocked for the test
+account; its cancellation and retry behavior is described below.
 
-> **Screenshot TODO — Google Photos import:** Capture the import controls and
-> selected-photo/Picker state without exposing unrelated photos, then the
-> processed board preview and its numbered steps.
+## 4. Record a spoken explanation
 
-## 4. Record the Spoken Explanation
+1. Select **Start recording** and allow microphone access. The recorder shows an
+   elapsed timer and is configured to stop after three minutes.
+2. Explain the board aloud. For this example, say: “Sigma should be 2, not 1.4
+   as written on the board.”
+3. Select **Stop recording**. Play the take back if desired, or choose
+   **Re-record** to make a replacement. Select **Use this recording** to process
+   and save it.
+4. The saved material displays a transcript and spoken points such as
+   **Explanation** and **Correction**; emphasis can also be tagged when present.
 
-1. In Material, choose **Start recording** and allow microphone access. The
-   panel shows elapsed time and stops automatically after three minutes.
-2. Choose **Stop recording** to stop sooner. Play back the take, or choose
-   **Re-record** to replace it. Recording is made with the microphone at runtime;
-   the panel does not offer an audio-file upload alternative.
-3. Choose **Use this recording** to process and save it. The saved material shows
-   a transcript and spoken points tagged `explanation`, `correction`, or
-   `emphasis`.
+![Recorder while capturing an explanation](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/05-recording.png)
 
-![Active recording and timer](images/application-demo/05-recording.png)
+*The active recording indicator and timer.*
 
-![Completed recording playback controls](images/application-demo/05b-recording-playback.png)
+![Completed recording with playback and re-record controls](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/05b-recording-playback.png)
 
-![Saved transcript and tagged spoken points](images/application-demo/06-transcript.png)
+*The completed take before it is submitted. Audible playback was separately
+confirmed in the Edge and Safari tests.*
 
+![Saved transcript and tagged spoken points](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/06-transcript.png)
 
-## 5. Demonstrate a Spoken Correction
+*The processed explanation, including a correction point.*
 
-For the final browser demonstration, use a board that says **`σ = 1.4`**. In the
-spoken explanation, explicitly say that sigma should be **2**, not **1.4** as
-written. After building, check the Notes tab: the original board value should
-remain visible, and the spoken correction should appear separately rather than
-silently replacing it. The observed Notes result is shown below.
+## 5. Generate notes and flashcards
 
-![Notes preserving the original value and correction](images/application-demo/08-notes-correction.png)
+When the board and recording are ready, select **Make notes and flashcards**.
+The interface shows build progress and opens the generated **Notes** view when
+the build succeeds. The **Study** tab contains the resulting flashcards and tutor.
 
-## 6. Build Notes and Flashcards
+![The enabled Make notes and flashcards button](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/07-build-ready.png)
 
-With processed photo and audio present, choose **Make notes and flashcards** on
-Material. The server makes notes and then flashcards. The build status is shown
-while it runs; a completed result opens the **Notes** tab. The server also
-requires readable board steps and a nonempty transcript.
+*Both sources are ready for generation.*
 
-![Ready to build notes and flashcards](images/application-demo/07-build-ready.png)
+## 6. Demonstrate the spoken correction
 
-![Generated notes after the build](images/application-demo/08-notes-correction.png)
+The Notes view combines the recognized board text and the explanation by step.
+Its table has **On the board**, **What you said**, and **Correction** columns.
 
+In step 2, the board text remains **σ = 1.4**, while the shaded correction says
+sigma should be **2**. Keeping both values visible shows the written source and
+the later spoken correction together.
 
-## 7. Review Generated Notes
+![Generated notes retaining sigma 1.4 alongside the correction to 2](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/08-notes-correction.png)
 
-The **Notes** tab shows a summary and a table with **Step**, **On the board**,
-**What you said**, and **Correction**. Board text remains as written; a spoken
-correction is displayed in a shaded cell. A step without a saved explanation
-shows **Not explained in the recording.**
+*The original board value and separate spoken correction in step 2.*
 
-![Generated notes and correction](images/application-demo/08-notes-correction.png)
+## 7. Review flashcards
 
-## 8. Study with Flashcards
+Open **Study**. Select a card to flip between its question and answer; the card
+also identifies its source step. Use **Previous** and **Next card** to navigate,
+mark a card **Got it** or **Still learning**, and select **Only cards I don't
+know yet** to focus on unknown cards.
 
-Open **Study** to review the saved generated cards. Click a card to flip between
-question and answer; the card displays its source **Step**. Use **Previous** and
-**Next card**, mark it **Got it** or **Still learning**, or select **Only cards I
-don't know yet** to load the backend's unknown-card view. **Delete card** asks
-for confirmation before deletion. An empty deck shows an explanatory message.
+![Generated flashcard with review controls and unknown-only filter](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/09-flashcards.png)
 
-![Generated flashcard and review controls](images/application-demo/09-flashcards.png)
+*A question card with navigation, review marks, and the filter.*
 
-## 9. Ask the Study Tutor
+## 8. Study tutor
 
-In **Study**, type a question under **Ask your notes.** and send it. The tutor is
-intended to answer from the current session's saved material. It displays the
-answer and either source steps or a not-covered indicator. Earlier questions are
-available under **Earlier questions**; the current history is limited to the
-latest 20.
+In **Ask your notes**, enter a question and submit it. The following examples
+show a question covered by the board and one outside the saved material.
 
-### Covered Question
+### Covered question
 
-For the sigma demonstration, ask: **“What correction was made to sigma?”** The
-final evidence should show the submitted question, the actual generated answer,
-and **Steps used:** with the relevant board step. Check the answer against the
-saved notes; do not assume the model's result in advance.
+Ask **“What correction was made to sigma?”** In the later Edge test, the tutor
+answered that sigma was corrected from **1.4 to 2** and displayed **Steps
+used: 2**.
 
-![Tutor response to the sigma question](images/application-demo/10-tutor-covered.png)
+![Edge tutor answer identifying the sigma correction and citing step 2](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/edge-compatibility/07-tutor-covered.png)
 
-The answer correctly cited step 2 in its text, but the interface also displayed
-**Not covered by your material**. This inconsistency remains unresolved.
+*The covered question and its source step, observed in Edge.*
 
-> **Screenshot TODO — Covered tutor question:** Capture the sigma question, the
-> tutor's actual answer, and the visible **Steps used:** line with its step number.
+### Uncovered question
 
-### Uncovered Question
+Ask **“What is the capital of France?”** The tutor identifies that the saved
+Canny material does not cover the question.
 
-Ask a question deliberately unrelated to the selected board, such as **“What is
-the capital of France?”**, provided that fact is absent from the session. Check
-that the response reflects the saved material's limits and displays **Not covered
-by your material**. The exact generated answer is not prescribed here.
+![Tutor response marking the France question as not covered](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/11-tutor-uncovered.png)
 
-![Tutor response to a question outside the material](images/application-demo/11-tutor-uncovered.png)
+*The unrelated question is marked as not covered by the material.*
 
-## 10. Replace Material and Rebuild
+An earlier Chrome observation produced a correct sigma answer but also displayed
+the **Not covered by your material** label. Later Edge and Safari tests showed
+the covered question with step 2 and without that inconsistent label. Those
+later results do not establish a Chrome retest; the earlier observation remains
+in the Chrome report.
 
-### Replace Photo
+## 9. Replace material, re-record and rebuild
 
-From Notes, select **Replace photo** to return to Material. Upload or import a
-replacement board photo in the same session. When notes already exist, saving
-changed material marks them as needing a rebuild.
+1. From **Notes**, select **Replace photo** and upload or import a board in the
+   same session. Alternatively, choose **Re-record**, capture a new explanation,
+   and select **Use this recording**.
+2. After changed material is saved, StudyBoard indicates that existing notes and
+   cards need a rebuild. Select **Rebuild** on Notes.
+3. Review the regenerated notes and cards. The Chrome and Edge tests observed
+   that rebuilt cards started with no cards marked known.
 
-### Re-record
+![Rebuild-required notice after a replacement recording was saved](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/12-rebuild-needed.png)
 
-Select **Re-record** on Notes to return to Material, then make and save a new
-microphone recording with **Use this recording**. This replaces the session's
-saved processed recording; it does not create another session.
+*The notice appears after the replacement recording is saved.*
 
-### Rebuild
+![Rebuilt flashcards with zero cards marked known](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/12b-rebuilt-cards.png)
 
-Return to Notes and choose **Rebuild** to generate notes and cards from the
-currently saved material. A successful rebuild replaces the generated card set;
-the new cards start as not known, so earlier review marks do not carry over.
-The Chrome pass observed a successful rebuild after replacing the recording and after re-uploading the same photo.
+*The rebuilt deck's review state. The device-photo replacement test re-uploaded
+the same board; it did not compare different board content.*
 
-![Changed recording requires a rebuild](images/application-demo/12-rebuild-needed.png)
+## 10. Error and retry
 
-![Rebuilt cards reset review progress](images/application-demo/12b-rebuilt-cards.png)
+In the Edge test, blocking microphone permission produced a clear message and a
+**Try again** control. After permission was restored and the page reloaded, a
+fresh recording started. The test did not exercise that original retry button
+after the reload.
 
-The photo was also re-uploaded using the same supplied image and a subsequent rebuild succeeded. A different photo was not tested.
+![Microphone access blocked message and retry control in Edge](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/edge-compatibility/12-microphone-blocked.png)
 
-## 11. Error and Retry Behavior
+*The microphone permission error, with instructions to allow access.*
 
-Use safe, reversible examples during the final pass:
+A separate Google Photos cancellation check displayed a window-closed message.
+In Edge, **Try again** reopened authorization, and a later user-performed retry
+successfully imported the photo. The Chrome attempt remained blocked for its
+test account.
 
-1. **Microphone permission denied:** Start recording and deny access. The source
-   displays **Microphone access is blocked. Allow the microphone for this site in
-   your browser settings, then try again.** The status includes **Try again**;
-   allow access before retrying.
-2. **Photos permission or Picker not finished:** If Photos permission is denied,
-   the panel displays the authorization error and **Try again**. If import is
-   attempted before selection is finished, it displays the server error and
-   retains **Open Google Photos** so the user can finish selection, then retry.
-3. **Build failure:** If a build fails naturally, the Material or Notes status
-   displays the returned message and **Try again**. Do not damage saved data or
-   change cloud configuration merely to force an error.
+![Google Photos window-closed message and Try again control](https://raw.githubusercontent.com/dishd123/StudyBoard/main/docs/images/application-demo/13-error-retry.png)
 
-The scenarios above are source-based expectations; the observed Chrome evidence is shown below.
+*The window-closed message observed during the Chrome pass.*
 
-![Google Photos window closed error and Try again control](images/application-demo/13-error-retry.png)
+## 11. Demonstration results and evidence
 
-During the Chrome pass, Google Photos authorization showed 403 `access_denied`
-because the app was limited to approved testers. StudyBoard then displayed the
-window-closed message above. The Try again control reopened the Google authorization window; the approved-tester restriction still blocked import. Microphone denial also produced a clear message and retry control. After permission was restored and the page reloaded, a new recording started; the microphone retry button itself was not exercised.
+The recorded workflow shows a student moving from a photographed board and
+spoken explanation to generated notes, flashcards, and grounded tutor responses.
+It also demonstrates a separate spoken correction, replacement and rebuild, and
+representative error and recovery behavior.
 
-> **Screenshot TODO — Retry outcome:** Capture the subsequent outcome after a
-> safe retry. Hide account details and unrelated personal material.
-
-## 12. End-to-End Demonstration Checklist
-
-- [ ] Sign in.
-- [ ] Create a session with title and course.
-- [ ] Import a board photo, including the Google Photos path when available.
-- [ ] Record and save an explanation.
-- [ ] Build notes and flashcards.
-- [ ] Show `σ = 1.4` on the board and a separate correction to `2`.
-- [ ] Review notes.
-- [ ] Review flashcards and their source steps.
-- [ ] Ask a covered tutor question and show source steps.
-- [ ] Ask an uncovered question and show the not-covered indicator.
-- [ ] Replace the photo.
-- [ ] Re-record the explanation.
-- [ ] Rebuild and inspect reset review state.
-- [ ] Capture a representative error.
-- [ ] Demonstrate its retry behavior.
-
-Final verification fields, to be completed after the browser pass:
-
-- Chrome version: 157.0.8103.79
-- Chrome test date: 2026-11-22
-- Safari version:
-- Safari test date:
-- Deployed application URL: https://studyboard-389363739519.us-central1.run.app/
-- Final screenshot pass completed:
+Browser observations are documented in the
+[Chrome compatibility report](https://github.com/dishd123/StudyBoard/blob/main/docs/chrome-compatibility.md),
+[Edge compatibility report](https://github.com/dishd123/StudyBoard/blob/main/docs/edge-compatibility.md),
+and [Safari compatibility report](https://github.com/dishd123/StudyBoard/blob/main/docs/safari-compatibility.md).
+The Chrome report retains the covered-tutor inconsistency and its blocked
+Photos import; the later Edge and Safari reports record their own successful
+checks. The Safari report also notes that its exact recording MIME type was not
+observed. The reports distinguish screenshots from tester-confirmed actions,
+including Google Photos import and audible playback.
